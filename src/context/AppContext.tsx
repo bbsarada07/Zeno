@@ -13,6 +13,9 @@ import type {
   InterviewReplay,
   RecruiterFeedback,
   PetitionRecord,
+  PlacementApplicationDraft,
+  MedicalWaiverDraft,
+  IntentResult,
 } from '../types';
 import {
   INSTITUTIONAL_TENANTS,
@@ -25,12 +28,17 @@ import {
   MOCK_WAIVER_PETITION,
   INITIAL_PENDING_PETITIONS,
 } from '../data/mockData';
+import { classifyUserIntent } from '../lib/intentClassifier';
 import confetti from 'canvas-confetti';
 
 interface AppContextType {
   // Theme
   theme: 'dark' | 'light';
   toggleTheme: () => void;
+
+  // Demo Override Mode
+  isDemoMode: boolean;
+  toggleDemoMode: () => void;
 
   // Auth Vault Session
   authSession: AuthVaultSession | null;
@@ -65,10 +73,14 @@ interface AppContextType {
   setIsRecruiterModalOpen: (open: boolean) => void;
   isInterviewModalOpen: boolean;
   setIsInterviewModalOpen: (open: boolean) => void;
+  placementDraft: PlacementApplicationDraft;
+  setPlacementDraft: React.Dispatch<React.SetStateAction<PlacementApplicationDraft>>;
 
   // Waiver Petition & HOD Action Pipeline
   waiverPetition: WaiverPetition;
   petitions: PetitionRecord[];
+  medicalWaiverDraft: MedicalWaiverDraft;
+  setMedicalWaiverDraft: React.Dispatch<React.SetStateAction<MedicalWaiverDraft>>;
   submitPetition: (newPet: Omit<PetitionRecord, 'id' | 'submittedAt'>) => void;
   approvePetition: (id: string, notes?: string) => void;
   rejectPetition: (id: string, notes?: string) => void;
@@ -91,6 +103,7 @@ interface AppContextType {
     sender: 'user' | 'agent';
     text: string;
     timestamp: string;
+    intentResult?: IntentResult;
     quickActionType?: 'gis' | 'placement' | 'waiver';
   }>;
   sendMessage: (text: string) => void;
@@ -111,6 +124,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 const AUTH_VAULT_STORAGE_KEY = 'Zeno_Auth_Vault';
 const PETITIONS_STORAGE_KEY = 'zeno_pending_petitions';
 const THEME_STORAGE_KEY = 'zeno_theme_mode';
+const DEMO_MODE_STORAGE_KEY = 'zeno_demo_mode';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Theme State
@@ -139,6 +153,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
+  // Demo Override Mode
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(() => {
+    return localStorage.getItem(DEMO_MODE_STORAGE_KEY) === 'true';
+  });
+
+  const toggleDemoMode = () => {
+    setIsDemoMode((prev) => {
+      const next = !prev;
+      localStorage.setItem(DEMO_MODE_STORAGE_KEY, String(next));
+      return next;
+    });
+  };
+
   // Auth Vault & Session State
   const [selectedTenant, setSelectedTenant] = useState<InstitutionalTenant>(INSTITUTIONAL_TENANTS[0]);
   const [activeRole, setActiveRole] = useState<UserRole>('student');
@@ -158,17 +185,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(!authSession?.isAuthenticated);
 
-  // Sync auth state to localStorage
+  // Sync auth session & credentials to localStorage
   useEffect(() => {
     if (authSession) {
       localStorage.setItem(AUTH_VAULT_STORAGE_KEY, JSON.stringify(authSession));
       localStorage.setItem('zeno_user_session', JSON.stringify(authSession));
       localStorage.setItem('zeno_session', JSON.stringify(authSession));
-    } else {
-      localStorage.removeItem(AUTH_VAULT_STORAGE_KEY);
-      localStorage.removeItem('zeno_user_session');
-      localStorage.removeItem('zeno_session');
-      localStorage.removeItem('zeno_token');
+      localStorage.setItem('zeno_user', JSON.stringify({
+        name: 'Alex Rivera',
+        rollNumber: '2451-22-733-001',
+        role: authSession.role,
+        tenant: authSession.tenantCode,
+      }));
     }
   }, [authSession]);
 
@@ -198,16 +226,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return true;
   };
 
-  // Safe Instant Logout Rollback (No dark screen delay!)
+  // Robust Logout Flow (localStorage.clear() & clean React re-render)
   const logoutSession = () => {
-    localStorage.removeItem(AUTH_VAULT_STORAGE_KEY);
-    localStorage.removeItem('zeno_token');
-    localStorage.removeItem('zeno_session');
-    localStorage.removeItem('zeno_user_session');
+    localStorage.clear();
     setAuthSession(null);
     setIsLoggingOut(false);
     setIsAuthModalOpen(true);
     setActiveTab('dashboard');
+    setPetitions(INITIAL_PENDING_PETITIONS);
   };
 
   // Navigation Active Tab
@@ -215,6 +241,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Student Profile
   const [student] = useState<StudentProfile>(MOCK_STUDENT);
+
+  // Workflow Template Isolation Drafts
+  const [placementDraft, setPlacementDraft] = useState<PlacementApplicationDraft>({
+    companyName: 'Google Inc.',
+    roleTitle: 'Software Engineer - AI Systems (L3)',
+    candidateName: 'Alex Rivera',
+    rollNumber: '2451-22-733-001',
+    cgpa: 8.84,
+    coverLetterBody: `Dear University Relations & Hiring Team at Google,
+
+I am writing to express my enthusiastic application for the Software Engineer - AI Systems (L3) position. As a final-year Computer Science student at Vasavi College of Engineering (CGPA: 8.84/10.0, 0 Active Backlogs), I have developed hands-on expertise in distributed PyTorch model training, TypeScript API engines, and vector indexing.
+
+My portfolio includes Zeno—an autonomous smart campus governance platform utilizing multi-agent LangGraph workflows and Qdrant vector retrieval. I am eager to contribute to Google's next-generation AI infrastructure.
+
+Sincerely,
+Alex Rivera (2451-22-733-001)`,
+  });
+
+  const [medicalWaiverDraft, setMedicalWaiverDraft] = useState<MedicalWaiverDraft>({
+    category: 'Medical Waiver',
+    datesAffected: '14 July 2026 – 18 July 2026',
+    classesMissed: 14,
+    currentAttendance: 72.5,
+    postWaiverAttendance: 75.2,
+    hospitalName: 'Apollo Hospitals, Jubilee Hills',
+    doctorName: 'Dr. R. K. Sharma (MD)',
+    petitionLetter: `Respected Head of Department,
+
+I am writing to formally request condensation for my attendance in Semester VI (Current: 72.5%, Required: 75.0%). I was unable to attend classes between July 14 and July 18 due to severe viral fever.
+
+I have attached the verified medical certificate from Apollo Hospitals (Cert ID: APH-2026-8819). I request you to kindly approve the 2.5% attendance waiver so I remain eligible for upcoming tier-1 placement drives.
+
+Sincerely,
+Alex Rivera (Roll No: 2451-22-733-001)`,
+  });
 
   // Shared Petitions Pipeline State
   const [petitions, setPetitions] = useState<PetitionRecord[]>(() => {
@@ -227,7 +288,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return INITIAL_PENDING_PETITIONS;
   });
 
-  // Sync petitions to localStorage
   useEffect(() => {
     localStorage.setItem(PETITIONS_STORAGE_KEY, JSON.stringify(petitions));
   }, [petitions]);
@@ -254,7 +314,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const pet = petitions.find((p) => p.id === id);
 
-    // Create execution proof receipt
     const receipt: CryptographicReceipt = {
       actionId: `ACT-ZENO-${Math.floor(10000 + Math.random() * 90000)}-VCE`,
       txHash: `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
@@ -369,12 +428,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsHitlDrawerOpen(false);
   };
 
-  // Chat Canvas Messages
+  // Chat Canvas Messages with Dynamic Intent Classification
   const [messages, setMessages] = useState<Array<{
     id: string;
     sender: 'user' | 'agent';
     text: string;
     timestamp: string;
+    intentResult?: IntentResult;
     quickActionType?: 'gis' | 'placement' | 'waiver';
   }>>([
     {
@@ -382,9 +442,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       sender: 'agent',
       text: `Welcome back, **${MOCK_STUDENT.name}** (${MOCK_STUDENT.rollNumber}).
 
-I am **Zeno**, your Autonomous Smart Campus Governance & GIS Intelligence Platform. 
+I am **Zeno**, your Autonomous Smart Campus Governance & Intent Classifier Platform. 
 
-How can I assist you today? Try typing a query or click one of the quick action buttons above.`,
+Try typing a query about **Attendance**, **Placement Drives**, **Events/Hackathons**, **Email Drafts**, or **Student Complaints**.`,
       timestamp: '10:40 AM',
     },
   ]);
@@ -400,63 +460,20 @@ How can I assist you today? Try typing a query or click one of the quick action 
 
     setMessages((prev) => [...prev, newMsg]);
 
-    const lower = text.toLowerCase();
-
     setTimeout(() => {
-      let replyText = '';
-      let quickActionType: 'gis' | 'placement' | 'waiver' | undefined = undefined;
-
-      if (lower.includes('os lab') || lower.includes('where is') || lower.includes('class') || lower.includes('room')) {
-        replyText = `### 📍 Spatial Campus GIS Location Resolved
-
-- **Course:** Operating Systems Laboratory (\`CS-302-LAB\`)
-- **Faculty:** Dr. K. Srinivas
-- **Location:** **Admin Block, Floor 2, Room CL-12**
-- **Schedule:** 10:00 AM – 12:00 PM (Current Class)
-
-Click the button below to view the interactive indoor floor plan and step-by-step route map.`;
-        quickActionType = 'gis';
-        openGisNavigation();
-      } else if (lower.includes('google') || lower.includes('placement') || lower.includes('eligible') || lower.includes('drive')) {
-        replyText = `### 🎓 Placement AI Eligibility & Strategy Matrix
-
-- **Target Drive:** **Google Software Engineer - AI Systems (L3)**
-- **Candidate:** Alex Rivera (\`2451-22-733-001\`)
-- **Eligibility Status:** ✅ **ELIGIBLE** (CGPA 8.84 ≥ 8.5, 0 Backlogs)
-- **Match Score:** **94%**
-
-**Digital Twin Insight:** You match 94% of required skills (TypeScript, PyTorch, Distributed Systems). Click the Placement AI tab or button below to view your readiness dashboard.`;
-        quickActionType = 'placement';
-        setActiveTab('placement');
-      } else if (lower.includes('waiver') || lower.includes('medical') || lower.includes('attendance') || lower.includes('draft')) {
-        replyText = `### 📋 Attendance Waiver Petition Drafted
-
-- **Current Attendance:** **72.5%** (Required: 75.0%)
-- **Shortage:** 2.5% (14 missed class hours)
-- **Reason:** Acute viral illness (Apollo Hospitals Certificate Verified)
-- **Target Recipient:** Dr. Marcus Vance (HOD CSE)
-
-I have generated the formal petition payload. Click below to review and approve the request in the HITL Approval Drawer.`;
-        quickActionType = 'waiver';
-        setActiveTab('waivers');
-        setIsHitlDrawerOpen(true);
-      } else {
-        replyText = `I have processed your query via Zeno's Multi-Agent Intelligence Core. 
-
-**Summary:** All active systems operational. You can use the top navigation tabs to access **Campus GIS**, **Placement AI**, or **Waiver Petitions**.`;
-      }
+      const intent = classifyUserIntent(text);
 
       setMessages((prev) => [
         ...prev,
         {
           id: `agt-${Date.now()}`,
           sender: 'agent',
-          text: replyText,
+          text: intent.summary,
+          intentResult: intent,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          quickActionType,
         },
       ]);
-    }, 600);
+    }, 450);
   };
 
   // Preset Scenario Triggers
@@ -481,6 +498,8 @@ I have generated the formal petition payload. Click below to review and approve 
       value={{
         theme,
         toggleTheme,
+        isDemoMode,
+        toggleDemoMode,
         authSession,
         selectedTenant,
         setSelectedTenant,
@@ -505,8 +524,12 @@ I have generated the formal petition payload. Click below to review and approve 
         setIsRecruiterModalOpen,
         isInterviewModalOpen,
         setIsInterviewModalOpen,
+        placementDraft,
+        setPlacementDraft,
         waiverPetition,
         petitions,
+        medicalWaiverDraft,
+        setMedicalWaiverDraft,
         submitPetition,
         approvePetition,
         rejectPetition,

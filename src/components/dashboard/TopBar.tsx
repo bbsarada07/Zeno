@@ -7,11 +7,11 @@ import {
   LogOut,
   Bell,
   CheckCircle2,
-  Sparkles,
-  Command,
-  UserCheck,
-  GraduationCap,
+  Lock,
+  Zap,
   Building2,
+  ToggleLeft,
+  ToggleRight,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { INSTITUTIONAL_TENANTS } from '../../data/mockData';
@@ -22,6 +22,8 @@ export const TopBar: React.FC = () => {
   const {
     theme,
     toggleTheme,
+    isDemoMode,
+    toggleDemoMode,
     selectedTenant,
     setSelectedTenant,
     activeRole,
@@ -31,7 +33,6 @@ export const TopBar: React.FC = () => {
     setActiveTab,
     unreadCount,
     setIsNotificationDrawerOpen,
-    student,
   } = useApp();
 
   const [isTenantDropdownOpen, setIsTenantDropdownOpen] = useState(false);
@@ -65,22 +66,28 @@ export const TopBar: React.FC = () => {
         </div>
 
         {/* Live Render Kernel Connection Detector */}
-        <div className="hidden md:block">
+        <div className="hidden lg:block">
           <KernelStatus />
         </div>
 
-        {/* Tenant Selector Dropdown */}
+        {/* Locked Tenant Selector Dropdown (Requires Demo Mode to edit) */}
         <div className="relative">
           <button
-            onClick={() => setIsTenantDropdownOpen(!isTenantDropdownOpen)}
-            className="px-3 py-1.5 rounded-xl bg-slate-950/60 dark:bg-slate-950/60 html-light:bg-slate-100 border border-slate-800 dark:border-slate-800 html-light:border-slate-300 hover:border-cyan-500/50 transition-all flex items-center space-x-2 text-xs sm:text-sm font-semibold"
+            disabled={!isDemoMode}
+            onClick={() => isDemoMode && setIsTenantDropdownOpen(!isTenantDropdownOpen)}
+            title={!isDemoMode ? 'Session Locked: Enable Demo Mode to switch college' : 'Switch Institutional Tenant'}
+            className={`px-3 py-1.5 rounded-xl border transition-all flex items-center space-x-2 text-xs sm:text-sm font-semibold ${
+              !isDemoMode
+                ? 'bg-slate-950/40 opacity-75 border-slate-800 cursor-not-allowed text-slate-400'
+                : 'bg-slate-950/80 hover:border-cyan-500/50 text-white cursor-pointer'
+            }`}
           >
-            <Building2 className="w-4 h-4 text-amber-400" />
-            <span className="truncate max-w-[120px] sm:max-w-[180px] font-bold text-slate-900 dark:text-white">{selectedTenant.name}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            {!isDemoMode ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <Building2 className="w-4 h-4 text-amber-400" />}
+            <span className="truncate max-w-[120px] sm:max-w-[160px] font-bold">{selectedTenant.name}</span>
+            {isDemoMode && <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
           </button>
 
-          {isTenantDropdownOpen && (
+          {isDemoMode && isTenantDropdownOpen && (
             <div className="absolute left-0 mt-2 w-64 bg-[#090D14] dark:bg-[#090D14] html-light:bg-white border border-slate-800 dark:border-slate-800 html-light:border-slate-200 rounded-2xl p-2 shadow-2xl z-50">
               <div className="text-xs font-mono text-slate-400 uppercase tracking-wider p-2">Select College Tenant</div>
               {INSTITUTIONAL_TENANTS.map((t) => (
@@ -135,20 +142,40 @@ export const TopBar: React.FC = () => {
         })}
       </nav>
 
-      {/* Right Controls: Role Pill, Theme Toggle, Notification & Logout */}
+      {/* Right Controls: Demo Mode Toggle, Role Pill, Theme Toggle, Notification & Logout */}
       <div className="flex items-center space-x-3">
-        {/* Role Switcher Pill */}
+        {/* Demo Mode Toggle Switch */}
+        <button
+          onClick={toggleDemoMode}
+          title={isDemoMode ? 'Demo Mode Active: Dropdowns Unlocked' : 'Demo Mode Disabled: Role/Tenant Session Locked'}
+          className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+            isDemoMode
+              ? 'bg-cyan-500/10 border-cyan-500/40 text-cyan-400 shadow-[0_0_12px_rgba(0,240,255,0.2)]'
+              : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
+          }`}
+        >
+          {isDemoMode ? <ToggleRight className="w-4 h-4 text-cyan-400" /> : <ToggleLeft className="w-4 h-4 text-slate-500" />}
+          <span className="hidden sm:inline">DEMO MODE</span>
+        </button>
+
+        {/* Locked Role Switcher Pill */}
         <div className="relative">
           <button
-            onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
-            className="px-3 py-1.5 rounded-xl bg-slate-900/80 dark:bg-slate-900/80 html-light:bg-slate-200 border border-slate-800 dark:border-slate-800 html-light:border-slate-300 hover:border-amber-500/50 transition-all flex items-center space-x-2 text-xs sm:text-sm font-bold"
+            disabled={!isDemoMode}
+            onClick={() => isDemoMode && setIsRoleDropdownOpen(!isRoleDropdownOpen)}
+            title={!isDemoMode ? 'Session Locked: Enable Demo Mode to switch role' : 'Switch Active Role'}
+            className={`px-3 py-1.5 rounded-xl border transition-all flex items-center space-x-2 text-xs sm:text-sm font-bold ${
+              !isDemoMode
+                ? 'bg-slate-950/40 opacity-75 border-slate-800 cursor-not-allowed text-slate-400'
+                : 'bg-slate-900/80 hover:border-amber-500/50 text-white cursor-pointer'
+            }`}
           >
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+            {!isDemoMode ? <Lock className="w-3.5 h-3.5 text-amber-400" /> : <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />}
             <span className="uppercase text-amber-400 font-mono font-extrabold">{activeRole}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            {isDemoMode && <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
           </button>
 
-          {isRoleDropdownOpen && (
+          {isDemoMode && isRoleDropdownOpen && (
             <div className="absolute right-0 mt-2 w-60 bg-[#090D14] dark:bg-[#090D14] html-light:bg-white border border-slate-800 dark:border-slate-800 html-light:border-slate-200 rounded-2xl p-2 shadow-2xl z-50">
               <div className="text-xs font-mono text-slate-400 uppercase tracking-wider p-2">Switch Active Role</div>
               {rolesList.map((r) => (

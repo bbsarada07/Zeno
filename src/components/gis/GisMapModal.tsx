@@ -1,115 +1,218 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin, Navigation, Compass, Layers, Info } from 'lucide-react';
+import { X, MapPin, Navigation, Compass, Layers, Info, CheckCircle2, ChevronRight, Sparkles } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { MOCK_SCHEDULE } from '../../data/mockData';
+import type { GisRouteStep } from '../../types';
+
+const ROUTE_STEPS: GisRouteStep[] = [
+  { stepNumber: 1, instruction: 'Enter Admin Block via Main Security Gate A', distance: '0m', icon: '🚪' },
+  { stepNumber: 2, instruction: 'Take Central Elevator Bank to Floor 2', distance: '45m', icon: '🛗' },
+  { stepNumber: 3, instruction: 'Turn Right into West Academic Corridor', distance: '20m', icon: '➡️' },
+  { stepNumber: 4, instruction: 'Arrive at Room CL-12 Operating Systems Laboratory', distance: '15m', icon: '📍' },
+];
+
+const ROOM_NODES = [
+  { id: 'cl-12', label: 'CL-12 OS Lab', x: 520, y: 160, width: 140, height: 100, active: true },
+  { id: 'cl-14', label: 'CL-14 AI Lab', x: 680, y: 160, width: 140, height: 100, active: false },
+  { id: 'seminar-b', label: 'Seminar Hall B', x: 340, y: 160, width: 150, height: 100, active: false },
+  { id: 'hod-cabin', label: 'HOD Executive Office', x: 160, y: 160, width: 150, height: 100, active: false },
+  { id: 'faculty-204', label: 'Faculty Room 204', x: 160, y: 340, width: 150, height: 100, active: false },
+  { id: 'elevator-bank', label: 'Elevator Bank', x: 420, y: 340, width: 120, height: 80, active: false },
+  { id: 'main-entrance', label: 'Admin Block Entrance A', x: 420, y: 480, width: 160, height: 60, active: false },
+];
 
 export const GisMapModal: React.FC = () => {
   const { isGisModalOpen, setIsGisModalOpen } = useApp();
+  const [selectedRoom, setSelectedRoom] = useState<string>('CL-12 OS Lab');
+  const [activeStepIndex, setActiveStepIndex] = useState<number>(3);
 
   if (!isGisModalOpen) return null;
 
-  const currentClass = MOCK_SCHEDULE[0]; // Admin Block, Floor 2, Room CL-12
-
-  const navigationSteps = [
-    'Enter Admin Block Main Entrance Gate A',
-    'Take Central Elevator B2 to Floor 2',
-    'Turn right into CSE Department East Wing Corridor',
-    'Proceed 25 meters past Network Systems Lab',
-    'Arrive at Room CL-12 (Operating Systems Laboratory) on the Left',
-  ];
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-xl p-4 font-sans select-none">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-4xl bg-card border border-border rounded-2xl shadow-2xl overflow-hidden text-foreground flex flex-col max-h-[90vh]"
+        exit={{ opacity: 0, scale: 0.96 }}
+        className="w-full max-w-6xl h-[90vh] bg-[#090D14]/95 border border-slate-800 rounded-3xl shadow-[0_0_80px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col text-slate-100"
       >
-        {/* Modal Header */}
-        <div className="p-5 border-b border-border bg-muted/20 flex items-center justify-between">
+        {/* Modal Top Bar */}
+        <div className="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center">
-              <MapPin className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+              <Navigation className="w-5 h-5 animate-pulse" />
             </div>
             <div>
-              <h3 className="font-bold text-sm flex items-center gap-2">
-                <span>Spatial Campus GIS Indoor Map Engine</span>
-              </h3>
-              <p className="text-[11px] text-muted-foreground">
-                {currentClass.building} • Floor {currentClass.floor} • Room {currentClass.roomNumber} ({currentClass.subject})
+              <h2 className="text-base sm:text-lg font-extrabold text-white flex items-center space-x-2">
+                <span>Spatial Vector Campus Indoor Blueprint Map</span>
+                <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                  ADMIN BLOCK • FLOOR 2
+                </span>
+              </h2>
+              <p className="text-xs text-slate-400 font-mono">
+                Interactive SVG indoor turn-by-turn routing to target destination.
               </p>
             </div>
           </div>
 
           <button
             onClick={() => setIsGisModalOpen(false)}
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
+            className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Modal Body: Floor Plan Canvas Preview + Turn-by-Turn Directions */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 flex-1 overflow-hidden">
-          {/* Left: SVG / Canvas Floor Plan Map */}
-          <div className="lg:col-span-8 p-6 bg-background relative flex items-center justify-center border-b lg:border-b-0 lg:border-r border-border min-h-[300px]">
-            <svg viewBox="0 0 600 400" className="w-full h-full max-h-[360px] select-none">
-              {/* Outer Building Perimeter */}
-              <rect x="30" y="30" width="540" height="340" rx="16" fill="rgba(39, 39, 42, 0.2)" stroke="rgba(161, 161, 170, 0.3)" strokeWidth="2" />
+        {/* Main Content Layout */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+          {/* Left Canvas: SVG Indoor Vector Blueprint (lg:col-span-8) */}
+          <div className="lg:col-span-8 bg-[#05070A] p-6 relative flex flex-col items-center justify-center overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-800">
+            {/* SVG Vector Map Container */}
+            <div className="w-full h-full flex items-center justify-center relative">
+              <svg viewBox="0 0 1000 600" className="w-full h-full max-h-[500px]">
+                {/* Background Grid Pattern */}
+                <defs>
+                  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+                  </pattern>
+                  <filter id="glow">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                    <feMerge>
+                      <feMergeNode in="coloredBlur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
 
-              {/* Rooms Grid */}
-              {/* Entrance */}
-              <rect x="50" y="310" width="100" height="40" rx="8" fill="rgba(59, 130, 246, 0.1)" stroke="rgba(59, 130, 246, 0.4)" strokeWidth="1.5" />
-              <text x="100" y="335" textAnchor="middle" fill="#3B82F6" fontSize="11" fontWeight="bold" fontFamily="sans-serif">Elevator B2</text>
+                <rect width="100%" height="100%" fill="url(#grid)" />
 
-              {/* Corridor */}
-              <path d="M 100 310 L 100 200 L 450 200" fill="none" stroke="rgba(59, 130, 246, 0.8)" strokeWidth="4" strokeDasharray="6 6" className="animate-pulse" />
+                {/* Main Academic Hallway Corridors */}
+                <rect x="140" y="280" stroke="rgba(0,240,255,0.2)" strokeWidth="2" strokeDasharray="4 4" fill="rgba(15,23,42,0.4)" width="700" height="40" rx="6" />
+                <rect x="460" y="320" stroke="rgba(0,240,255,0.2)" strokeWidth="2" strokeDasharray="4 4" fill="rgba(15,23,42,0.4)" width="40" height="150" rx="6" />
 
-              {/* Adjacent Labs */}
-              <rect x="180" y="60" width="110" height="110" rx="8" fill="rgba(255, 255, 255, 0.03)" stroke="rgba(255, 255, 255, 0.1)" strokeWidth="1" />
-              <text x="235" y="120" textAnchor="middle" fill="#A1A1AA" fontSize="10" fontFamily="sans-serif">CL-10 Networks</text>
+                {/* Animated Routing Path Dash Stroke */}
+                <path
+                  d="M 480 500 L 480 300 L 590 300 L 590 210"
+                  fill="none"
+                  stroke="#00F0FF"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  strokeDasharray="12 8"
+                  className="animate-[dash_2s_linear_infinite]"
+                  filter="url(#glow)"
+                />
 
-              <rect x="310" y="60" width="110" height="110" rx="8" fill="rgba(255, 255, 255, 0.03)" stroke="rgba(255, 255, 255, 0.1)" strokeWidth="1" />
-              <text x="365" y="120" textAnchor="middle" fill="#A1A1AA" fontSize="10" fontFamily="sans-serif">CL-11 Systems</text>
+                {/* Room Nodes */}
+                {ROOM_NODES.map((room) => {
+                  const isSelected = selectedRoom === room.label;
+                  return (
+                    <g key={room.id} onClick={() => setSelectedRoom(room.label)} className="cursor-pointer">
+                      <rect
+                        x={room.x}
+                        y={room.y}
+                        width={room.width}
+                        height={room.height}
+                        rx="12"
+                        fill={isSelected ? 'rgba(0,240,255,0.15)' : 'rgba(15,23,42,0.8)'}
+                        stroke={isSelected ? '#00F0FF' : 'rgba(51,65,85,0.8)'}
+                        strokeWidth={isSelected ? '3' : '1.5'}
+                        filter={isSelected ? 'url(#glow)' : undefined}
+                      />
+                      <text
+                        x={room.x + room.width / 2}
+                        y={room.y + room.height / 2}
+                        fill={isSelected ? '#00F0FF' : '#CBD5E1'}
+                        fontSize="13"
+                        fontWeight="bold"
+                        fontFamily="monospace"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                      >
+                        {room.label}
+                      </text>
+                    </g>
+                  );
+                })}
 
-              {/* Target Room CL-12 */}
-              <rect x="440" y="60" width="110" height="110" rx="8" fill="rgba(16, 185, 129, 0.15)" stroke="#10B981" strokeWidth="2.5" />
-              <text x="495" y="110" textAnchor="middle" fill="#10B981" fontSize="12" fontWeight="bold" fontFamily="sans-serif">CL-12 OS LAB</text>
-              <text x="495" y="130" textAnchor="middle" fill="#A1A1AA" fontSize="9" fontFamily="sans-serif">Dr. K. Srinivas</text>
+                {/* Destination Pin Marker on Target Lab CL-12 */}
+                <g transform="translate(590, 210)">
+                  <circle r="12" fill="#00F0FF" opacity="0.3" className="animate-ping" />
+                  <circle r="6" fill="#00F0FF" />
+                  <text y="-14" fill="#00F0FF" fontSize="11" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
+                    TARGET: OS LAB CL-12
+                  </text>
+                </g>
+              </svg>
+            </div>
 
-              {/* Route Destination Marker */}
-              <circle cx="495" cy="180" r="8" fill="#10B981" className="animate-ping" />
-              <circle cx="495" cy="180" r="5" fill="#10B981" />
-            </svg>
+            {/* Map Legend */}
+            <div className="absolute bottom-4 left-4 right-4 p-3 rounded-2xl bg-slate-950/80 border border-slate-800 text-xs font-mono flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <span className="flex items-center space-x-1.5 text-cyan-400">
+                  <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+                  <span>Active Destination</span>
+                </span>
+                <span className="flex items-center space-x-1.5 text-slate-400">
+                  <span className="w-2.5 h-2.5 rounded bg-slate-700" />
+                  <span>Interactive Rooms</span>
+                </span>
+              </div>
+              <div className="text-slate-400">Click any room node to reroute</div>
+            </div>
           </div>
 
-          {/* Right: Step-by-Step Directions */}
-          <div className="lg:col-span-4 p-6 bg-card space-y-4 overflow-y-auto">
-            <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              <Navigation className="w-4 h-4 text-primary" />
-              <span>Turn-by-Turn Indoor Route</span>
+          {/* Right Side Panel: Turn-by-Turn Routing Steps (lg:col-span-4) */}
+          <div className="lg:col-span-4 p-6 space-y-6 flex flex-col justify-between overflow-y-auto bg-slate-950/40">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 className="font-extrabold text-sm uppercase tracking-wider text-white flex items-center space-x-2">
+                  <MapPin className="w-4 h-4 text-cyan-400" />
+                  <span>Turn-By-Turn Navigation</span>
+                </h3>
+                <span className="text-xs font-mono font-bold text-cyan-400">80m Total</span>
+              </div>
+
+              <div className="space-y-3">
+                {ROUTE_STEPS.map((step, idx) => {
+                  const isActive = activeStepIndex === idx;
+                  return (
+                    <div
+                      key={step.stepNumber}
+                      onClick={() => setActiveStepIndex(idx)}
+                      className={`p-3.5 rounded-2xl border cursor-pointer transition-all space-y-1 ${
+                        isActive
+                          ? 'bg-slate-900 border-cyan-400 shadow-[0_0_15px_rgba(0,240,255,0.2)]'
+                          : 'bg-slate-950/60 border-slate-800/80 hover:bg-slate-900/50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between text-xs font-mono">
+                        <span className="font-bold text-white flex items-center space-x-2">
+                          <span>{step.icon}</span>
+                          <span>Step {step.stepNumber}</span>
+                        </span>
+                        <span className="text-slate-400">{step.distance}</span>
+                      </div>
+                      <p className="text-xs text-slate-300 font-sans pl-6">{step.instruction}</p>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="space-y-3">
-              {navigationSteps.map((step, idx) => (
-                <div key={idx} className="flex items-start space-x-3 text-xs">
-                  <div className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center font-mono font-bold text-[10px] shrink-0 border border-primary/20 mt-0.5">
-                    {idx + 1}
-                  </div>
-                  <p className="text-muted-foreground leading-relaxed">{step}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="pt-4 border-t border-border">
-              <button
-                onClick={() => setIsGisModalOpen(false)}
-                className="w-full py-2.5 bg-primary text-primary-foreground font-semibold text-xs rounded-xl hover:opacity-90 transition-all"
-              >
-                Close Map Navigation
-              </button>
+            {/* Target Room Details Box */}
+            <div className="p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-mono space-y-2">
+              <div className="font-bold flex items-center justify-between">
+                <span className="flex items-center space-x-1.5">
+                  <Sparkles className="w-4 h-4 text-cyan-400" />
+                  <span>Destination: {selectedRoom}</span>
+                </span>
+                <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 text-[10px]">
+                  CLASS LIVE
+                </span>
+              </div>
+              <div className="text-[11px] text-slate-300">
+                Course: Operating Systems Laboratory (CS-302-LAB) • Faculty: Dr. K. Srinivas
+              </div>
             </div>
           </div>
         </div>

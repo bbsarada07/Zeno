@@ -1,164 +1,211 @@
 import React, { useState } from 'react';
-import { Send, MapPin, GraduationCap, FileCheck, Mic, Paperclip, Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
+import {
+  Send,
+  Sparkles,
+  Calendar,
+  Mail,
+  ShieldAlert,
+  GraduationCap,
+  BookOpen,
+  Copy,
+  CheckCircle2,
+  ExternalLink,
+} from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { AgentTopologyVisualizer } from './AgentTopologyVisualizer';
+import type { AgentDomain } from '../../types';
 
 export const ChatCanvas: React.FC = () => {
-  const {
-    messages,
-    sendMessage,
-    openGisNavigation,
-    setActiveTab,
-    setIsHitlDrawerOpen,
-    triggerScenario1_GIS,
-    triggerScenario2_Placement,
-    triggerScenario3_Waiver,
-  } = useApp();
+  const { messages, sendMessage, setIsHitlDrawerOpen } = useApp();
+  const [inputText, setInputText] = useState('');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const [input, setInput] = useState('');
+  const activeDomain: AgentDomain =
+    messages[messages.length - 1]?.intentResult?.domain || 'ACADEMIC';
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
-    sendMessage(input.trim());
-    setInput('');
+    if (!inputText.trim()) return;
+    sendMessage(inputText.trim());
+    setInputText('');
+  };
+
+  const handleCopyText = (id: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   return (
-    <div className="h-full flex flex-col bg-background text-foreground relative">
-      {/* Executive Header Quick Action Chips */}
-      <div className="p-3 sm:p-4 border-b border-border bg-card/40 backdrop-blur-md">
-        <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 flex items-center space-x-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-primary" />
-          <span>Executive Governance Command Shortcuts</span>
-        </div>
+    <div className="h-full flex flex-col zeno-glass-card p-4 sm:p-5 space-y-4 font-sans select-none overflow-hidden">
+      {/* Live Agent Topology Node Visualizer */}
+      <AgentTopologyVisualizer activeDomain={activeDomain} />
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          <button
-            onClick={triggerScenario1_GIS}
-            className="px-3 py-1.5 rounded-xl bg-muted/60 hover:bg-primary/10 hover:border-primary/40 border border-border text-xs font-medium whitespace-nowrap transition-all flex items-center space-x-1.5 shrink-0"
-          >
-            <MapPin className="w-3.5 h-3.5 text-blue-400" />
-            <span>Where is my OS Lab class?</span>
-          </button>
-
-          <button
-            onClick={triggerScenario2_Placement}
-            className="px-3 py-1.5 rounded-xl bg-muted/60 hover:bg-primary/10 hover:border-primary/40 border border-border text-xs font-medium whitespace-nowrap transition-all flex items-center space-x-1.5 shrink-0"
-          >
-            <GraduationCap className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Am I eligible for Google Placement Drive?</span>
-          </button>
-
-          <button
-            onClick={triggerScenario3_Waiver}
-            className="px-3 py-1.5 rounded-xl bg-muted/60 hover:bg-primary/10 hover:border-primary/40 border border-border text-xs font-medium whitespace-nowrap transition-all flex items-center space-x-1.5 shrink-0"
-          >
-            <FileCheck className="w-3.5 h-3.5 text-amber-400" />
-            <span>Draft Medical Attendance Waiver Request</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Chat Messages Stream */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+      {/* Chat Messages Conversation Stream */}
+      <div className="flex-1 overflow-y-auto space-y-4 pr-1">
         {messages.map((msg) => {
-          const isAgent = msg.sender === 'agent';
+          const isUser = msg.sender === 'user';
+          const intent = msg.intentResult;
+
           return (
-            <div key={msg.id} className={`flex ${isAgent ? 'justify-start' : 'justify-end'}`}>
+            <div key={msg.id} className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} space-y-1`}>
+              {/* Agent Domain Badge */}
+              {!isUser && intent && (
+                <div className="flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-[10px] font-mono font-bold text-cyan-400">
+                  <Sparkles className="w-3 h-3 text-cyan-400" />
+                  <span>[AGENT: {intent.agentName}]</span>
+                  <span className="text-slate-500">• Confidence: {Math.round(intent.confidence * 100)}%</span>
+                </div>
+              )}
+
               <div
-                className={`max-w-2xl rounded-2xl p-4 sm:p-5 shadow-sm space-y-3 ${
-                  isAgent
-                    ? 'bg-card border border-border text-foreground'
-                    : 'bg-primary text-primary-foreground font-medium'
+                className={`max-w-[90%] p-4 rounded-2xl text-sm leading-relaxed ${
+                  isUser
+                    ? 'bg-cyan-500 text-slate-950 font-medium shadow-[0_0_15px_rgba(0,240,255,0.3)] rounded-tr-none'
+                    : 'bg-slate-950/80 dark:bg-slate-950/80 html-light:bg-white border border-slate-800 dark:border-slate-800 html-light:border-slate-200 text-slate-100 dark:text-slate-100 html-light:text-slate-900 rounded-tl-none space-y-3'
                 }`}
               >
-                <div className="flex items-center justify-between text-xs opacity-75 pb-1 border-b border-border/40">
-                  <span className="font-semibold">{isAgent ? 'Zeno Governance Intelligence' : 'Alex Rivera'}</span>
-                  <span className="font-mono text-[10px]">{msg.timestamp}</span>
-                </div>
+                <div className="whitespace-pre-wrap font-sans">{msg.text}</div>
 
-                {/* Formatted Message Output */}
-                <div className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans">
-                  {msg.text}
-                </div>
+                {/* DYNAMIC COMPONENT 1: Structured Event Card */}
+                {!isUser && intent?.eventCard && (
+                  <div className="mt-3 p-4 rounded-xl bg-slate-900/90 border border-amber-500/40 text-xs font-mono space-y-2 text-slate-100">
+                    <div className="flex items-center justify-between text-amber-400 font-bold border-b border-slate-800 pb-2">
+                      <span className="flex items-center space-x-1.5">
+                        <Calendar className="w-4 h-4" />
+                        <span>{intent.eventCard.eventName}</span>
+                      </span>
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30">
+                        SCHEDULED
+                      </span>
+                    </div>
 
-                {/* Interactive Action Triggers embedded in Agent Responses */}
-                {isAgent && msg.quickActionType === 'gis' && (
-                  <div className="pt-2">
+                    <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-300">
+                      <div>
+                        <span className="text-slate-500">Organizer:</span> {intent.eventCard.organizer}
+                      </div>
+                      <div>
+                        <span className="text-slate-500">Venue:</span> {intent.eventCard.venue}
+                      </div>
+                      <div>
+                        <span className="text-slate-500">Date & Time:</span> {intent.eventCard.dateTime}
+                      </div>
+                      <div>
+                        <span className="text-slate-500">Deadline:</span> {intent.eventCard.deadline}
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] text-slate-400 pt-1 border-t border-slate-800">{intent.eventCard.description}</p>
+
                     <button
-                      onClick={openGisNavigation}
-                      className="w-full py-2.5 px-4 bg-primary text-primary-foreground text-xs font-semibold rounded-xl hover:opacity-90 transition-all flex items-center justify-center space-x-2 shadow-sm"
+                      onClick={() => alert(`Registered for ${intent.eventCard?.eventName}`)}
+                      className="w-full py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5"
                     >
-                      <MapPin className="w-4 h-4" />
-                      <span>Open Interactive Indoor Floor Plan Map</span>
+                      <span>Register for Event</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 )}
 
-                {isAgent && msg.quickActionType === 'placement' && (
-                  <div className="pt-2">
-                    <button
-                      onClick={() => setActiveTab('placement')}
-                      className="w-full py-2.5 px-4 bg-primary text-primary-foreground text-xs font-semibold rounded-xl hover:opacity-90 transition-all flex items-center justify-center space-x-2 shadow-sm"
-                    >
-                      <GraduationCap className="w-4 h-4" />
-                      <span>Open Placement AI & Digital Twin Workspace</span>
-                    </button>
+                {/* DYNAMIC COMPONENT 2: Structured Email Draft Card */}
+                {!isUser && intent?.emailDraft && (
+                  <div className="mt-3 p-4 rounded-xl bg-slate-900/90 border border-purple-500/40 text-xs font-mono space-y-3 text-slate-100">
+                    <div className="flex items-center justify-between text-purple-400 font-bold border-b border-slate-800 pb-2">
+                      <span className="flex items-center space-x-1.5">
+                        <Mail className="w-4 h-4" />
+                        <span>Formal Institutional Draft</span>
+                      </span>
+                      <span className="text-[10px] text-slate-400">Recipient: {intent.emailDraft.recipientName}</span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="text-[11px] text-slate-400">Subject:</div>
+                      <div className="p-2 rounded bg-slate-950 border border-slate-800 text-purple-300 font-bold">
+                        {intent.emailDraft.subject}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="text-[11px] text-slate-400">Body Payload:</div>
+                      <div className="p-3 rounded bg-slate-950 border border-slate-800 text-slate-300 whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">
+                        {intent.emailDraft.body}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2 pt-1">
+                      <button
+                        onClick={() => handleCopyText(`body-${msg.id}`, intent.emailDraft?.body || '')}
+                        className="flex-1 py-2 bg-slate-950 hover:bg-slate-800 text-slate-200 font-bold rounded-lg border border-slate-800 transition-all flex items-center justify-center space-x-1.5"
+                      >
+                        {copiedId === `body-${msg.id}` ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedId === `body-${msg.id}` ? 'Copied Body' : 'Copy Draft'}</span>
+                      </button>
+
+                      <button
+                        onClick={() => setIsHitlDrawerOpen(true)}
+                        className="flex-1 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 shadow-sm"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Send to HITL Drawer</span>
+                      </button>
+                    </div>
                   </div>
                 )}
 
-                {isAgent && msg.quickActionType === 'waiver' && (
-                  <div className="pt-2">
-                    <button
-                      onClick={() => setIsHitlDrawerOpen(true)}
-                      className="w-full py-2.5 px-4 bg-amber-500 text-black text-xs font-bold rounded-xl hover:opacity-90 transition-all flex items-center justify-center space-x-2 shadow-sm"
-                    >
-                      <ShieldCheck className="w-4 h-4" />
-                      <span>Open HITL Approval Drawer</span>
-                    </button>
+                {/* DYNAMIC COMPONENT 3: Structured Grievance Action Steps */}
+                {!isUser && intent?.grievanceSteps && (
+                  <div className="mt-3 p-4 rounded-xl bg-slate-900/90 border border-rose-500/40 text-xs font-mono space-y-3 text-slate-100">
+                    <div className="flex items-center justify-between text-rose-400 font-bold border-b border-slate-800 pb-2">
+                      <span className="flex items-center space-x-1.5">
+                        <ShieldAlert className="w-4 h-4" />
+                        <span>Administrative Action Workflow</span>
+                      </span>
+                    </div>
+
+                    <div className="space-y-2">
+                      {intent.grievanceSteps.map((step) => (
+                        <div key={step.stepNumber} className="p-3 rounded-lg bg-slate-950 border border-slate-800 space-y-1">
+                          <div className="flex items-center space-x-2 font-bold text-white">
+                            <span className="w-5 h-5 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center text-[10px]">
+                              {step.stepNumber}
+                            </span>
+                            <span>{step.title}</span>
+                          </div>
+                          <p className="text-[11px] text-slate-400">{step.description}</p>
+                          <div className="text-[10px] text-rose-300 font-mono pt-1 border-t border-slate-900">
+                            Contact: {step.officeContact}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
+
+              <span className="text-[10px] font-mono text-slate-500 px-1">{msg.timestamp}</span>
             </div>
           );
         })}
       </div>
 
-      {/* Command Input Area */}
-      <div className="p-4 border-t border-border bg-card/60 backdrop-blur-md">
-        <form onSubmit={handleSubmit} className="relative flex items-center">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Zeno (e.g. OS Lab location, placement eligibility, attendance waiver)..."
-            className="w-full pl-4 pr-24 py-3.5 text-xs sm:text-sm bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
-          />
-
-          <div className="absolute right-2 flex items-center space-x-1">
-            <button
-              type="button"
-              className="p-2 text-muted-foreground hover:text-foreground rounded-lg transition-all"
-              title="Voice Input"
-            >
-              <Mic className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              className="p-2 text-muted-foreground hover:text-foreground rounded-lg transition-all"
-              title="Attach Document"
-            >
-              <Paperclip className="w-4 h-4" />
-            </button>
-            <button
-              type="submit"
-              className="p-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-all shadow-sm"
-            >
-              <Send className="w-4 h-4" />
-            </button>
-          </div>
-        </form>
-      </div>
+      {/* Input Prompt Form */}
+      <form onSubmit={handleSubmit} className="flex items-center space-x-2 pt-2 border-t border-slate-800/80">
+        <input
+          type="text"
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          placeholder="Ask Zeno about Attendance, Placement Drives, Events, Email Drafts, or Grievances..."
+          className="flex-1 bg-slate-950 dark:bg-slate-950 html-light:bg-slate-100 border border-slate-800 dark:border-slate-800 html-light:border-slate-300 rounded-xl p-3 text-xs text-slate-100 dark:text-slate-100 html-light:text-slate-900 outline-none focus:border-cyan-500 font-mono"
+        />
+        <button
+          type="submit"
+          disabled={!inputText.trim()}
+          className="px-4 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold rounded-xl shadow-[0_0_15px_rgba(0,240,255,0.3)] transition-all flex items-center space-x-1.5 disabled:opacity-40"
+        >
+          <Send className="w-4 h-4" />
+          <span className="hidden sm:inline">Send</span>
+        </button>
+      </form>
     </div>
   );
 };

@@ -207,3 +207,68 @@ export interface PetitionRecord {
   petitionLetter: string;
   submittedAt: string;
 }
+
+export type AgentDomain = 'ACADEMIC' | 'PLACEMENT' | 'EVENTS' | 'COMMUNICATION' | 'STUDENT_SERVICE';
+
+export interface EventCardData {
+  eventName: string;
+  organizer: string;
+  dateTime: string;
+  venue: string;
+  eligibility: string;
+  deadline: string;
+  description: string;
+}
+
+export interface EmailDraftData {
+  recipientName: string;
+  recipientRole: string;
+  subject: string;
+  body: string;
+  studentRollNumber: string;
+  studentName: string;
+}
+
+export interface GrievanceStepData {
+  stepNumber: number;
+  title: string;
+  description: string;
+  officeContact: string;
+}
+
+export interface IntentResult {
+  domain: AgentDomain;
+  agentName: string;
+  confidence: number;
+  summary: string;
+  eventCard?: EventCardData;
+  emailDraft?: EmailDraftData;
+  grievanceSteps?: GrievanceStepData[];
+}
+
+export interface PlacementApplicationDraft {
+  companyName: string;
+  roleTitle: string;
+  candidateName: string;
+  rollNumber: string;
+  cgpa: number;
+  coverLetterBody: string;
+}
+
+export interface MedicalWaiverDraft {
+  category: string;
+  datesAffected: string;
+  classesMissed: number;
+  currentAttendance: number;
+  postWaiverAttendance: number;
+  hospitalName: string;
+  doctorName: string;
+  petitionLetter: string;
+}
+
+export interface GisRouteStep {
+  stepNumber: number;
+  instruction: string;
+  distance: string;
+  icon: string;
+}
