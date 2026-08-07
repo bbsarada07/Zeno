@@ -54,10 +54,11 @@ app.add_middleware(
 )
 
 # Mount Routers
-from routers.agent import router as agent_router
+from routers.agent import router as agent_router, tenant_router
 from routers.telemetry import router as telemetry_router
 
 app.include_router(agent_router)
+app.include_router(tenant_router)
 app.include_router(telemetry_router)
 
 @app.get("/")

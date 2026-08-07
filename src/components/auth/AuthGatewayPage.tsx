@@ -16,8 +16,10 @@ import {
   KeyRound,
   CheckCircle2,
   Loader2,
+  PlusCircle,
 } from 'lucide-react';
 import { AuthNeuralCanvas } from './AuthNeuralCanvas';
+import { OtpRegistrationModal } from './OtpRegistrationModal';
 import { useApp } from '../../context/AppContext';
 import type { UserRole } from '../../types';
 
@@ -38,7 +40,7 @@ const DEMO_PERSONAS: Array<{
     name: 'Alex Rivera',
     email: 'alex.rivera@vasavi.ac.in',
     role: 'student',
-    tenantCode: 'VCE-HYD-500031',
+    tenantCode: 'VCE-HDO-500031',
     accent: '#00F0FF',
     icon: '🎓',
   },
@@ -48,7 +50,7 @@ const DEMO_PERSONAS: Array<{
     name: 'Dr. K. V. Sharma',
     email: 'dr.sharma@vasavi.ac.in',
     role: 'faculty',
-    tenantCode: 'VCE-HYD-500031',
+    tenantCode: 'VCE-HDO-500031',
     accent: '#10B981',
     icon: '👨‍🏫',
   },
@@ -58,7 +60,7 @@ const DEMO_PERSONAS: Array<{
     name: 'Dr. S. R. Rao (HOD CSE)',
     email: 'hod.cse@vasavi.ac.in',
     role: 'hod',
-    tenantCode: 'VCE-HYD-500031',
+    tenantCode: 'VCE-HDO-500031',
     accent: '#F59E0B',
     icon: '🏛️',
   },
@@ -115,6 +117,7 @@ export const AuthGatewayPage: React.FC = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
   const [activePersonaId, setActivePersonaId] = useState<string>('student_alex');
+  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
 
   const currentRoleConfig = ROLE_CONFIGS[activeRole];
 
@@ -166,6 +169,9 @@ export const AuthGatewayPage: React.FC = () => {
 
   return (
     <div className="h-screen w-screen bg-[#05070A] text-slate-100 flex flex-col lg:flex-row overflow-hidden font-sans select-none relative">
+      {/* 2-Step OTP Registration Modal */}
+      <OtpRegistrationModal isOpen={isOtpModalOpen} onClose={() => setIsOtpModalOpen(false)} />
+
       {/* MATRIX TERMINAL LOADER OVERLAY */}
       <AnimatePresence>
         {isConnecting && (
@@ -224,7 +230,7 @@ export const AuthGatewayPage: React.FC = () => {
                   Z
                 </div>
                 <div>
-                  <div className="font-extrabold tracking-wider text-xl flex items-center space-x-2">
+                  <div className="font-extrabold tracking-wider text-xl flex items-center space-x-2 text-white">
                     <span>ZENO</span>
                     <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full bg-slate-900 text-slate-300 border border-slate-800">
                       v2.4 Core
@@ -236,16 +242,28 @@ export const AuthGatewayPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* SECURE NODE GATEWAY badge with green pulse indicator */}
+              {/* SECURE NODE GATEWAY badge */}
               <div className="px-3 py-1 rounded-full bg-slate-900/90 border border-slate-800 text-[11px] font-mono text-emerald-400 flex items-center space-x-2 shadow-inner">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <span className="font-semibold">SECURE NODE GATEWAY</span>
               </div>
             </div>
 
-            <p className="text-xs text-slate-400 leading-relaxed pt-1">
-              Verify your institutional security token to access the command workspace.
-            </p>
+            <div className="flex items-center justify-between pt-1">
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Verify your institutional security token to access the command workspace.
+              </p>
+
+              {/* OTP Registration Modal Trigger */}
+              <button
+                type="button"
+                onClick={() => setIsOtpModalOpen(true)}
+                className="px-3 py-1 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-[11px] font-bold font-mono transition-all flex items-center space-x-1.5 shrink-0"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span>Register Node</span>
+              </button>
+            </div>
           </div>
 
           {/* Form Controls */}
@@ -254,7 +272,7 @@ export const AuthGatewayPage: React.FC = () => {
             <div className="space-y-1.5">
               <label className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-300 flex items-center justify-between">
                 <span>Institutional Identifier / Email</span>
-                <span className="text-[10px] text-slate-500">VASAVI COLLEGE (VCE-HYD)</span>
+                <span className="text-[10px] text-cyan-400 font-mono">{selectedTenant.code}</span>
               </label>
               <div className="relative">
                 <input

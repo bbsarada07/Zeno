@@ -24,6 +24,25 @@ async def execute_agent(payload: ExecuteRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Agent graph execution error: {str(e)}")
 
+tenant_router = APIRouter(prefix="/api/v1/tenant", tags=["Multi-Tenant Agent Governance Engine"])
+
+@tenant_router.post("/{tenant_id}/agent/execute")
+async def execute_tenant_agent(tenant_id: str, payload: ExecuteRequest):
+    try:
+        result = await execute_agent_graph(
+            user_id=payload.user_id,
+            tenant_id=tenant_id or payload.tenant_id,
+            message=payload.message,
+            context_overrides=payload.context_overrides
+        )
+        return {
+            "status": "success",
+            "tenant_id": tenant_id,
+            "data": result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Tenant agent graph execution error: {str(e)}")
+
 @router.post("/hitl-approve")
 async def hitl_approve(payload: HITLApproveRequest):
     try:

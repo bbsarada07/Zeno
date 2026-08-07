@@ -57,16 +57,19 @@ export async function checkBackendHealth(): Promise<{ healthy: boolean; service?
 }
 
 /**
- * Execute Multi-Agent Graph via /api/v1/agent/execute
+ * Execute Multi-Agent Graph via /api/v1/agent/execute or /api/v1/tenant/{tenant_id}/agent/execute
  */
 export async function executeAgentGraph(payload: ExecuteAgentPayload): Promise<AgentExecutionResponse | null> {
+  const tenantId = payload.tenant_id || 'vce_dept';
+  const endpoint = `${BACKEND_BASE_URL}/api/v1/tenant/${tenantId}/agent/execute`;
+
   try {
-    const res = await fetch(`${BACKEND_BASE_URL}/api/v1/agent/execute`, {
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         user_id: payload.user_id || '2451-22-733-001',
-        tenant_id: payload.tenant_id || 'vce_dept',
+        tenant_id: tenantId,
         message: payload.message,
         context_overrides: payload.context_overrides || {},
       }),
@@ -76,7 +79,22 @@ export async function executeAgentGraph(payload: ExecuteAgentPayload): Promise<A
       return await res.json();
     }
   } catch (err) {
-    console.warn('FastAPI backend connection error, using local agent engine fallback.', err);
+    // Fallback to standard agent execute endpoint
+    try {
+      const fallbackRes = await fetch(`${BACKEND_BASE_URL}/api/v1/agent/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: payload.user_id || '2451-22-733-001',
+          tenant_id: tenantId,
+          message: payload.message,
+          context_overrides: payload.context_overrides || {},
+        }),
+      });
+      if (fallbackRes.ok) return await fallbackRes.json();
+    } catch (fallbackErr) {
+      console.warn('FastAPI backend connection error, using local agent engine fallback.', fallbackErr);
+    }
   }
   return null;
 }

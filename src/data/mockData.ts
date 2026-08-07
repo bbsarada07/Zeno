@@ -18,8 +18,8 @@ import type {
 export const INSTITUTIONAL_TENANTS: InstitutionalTenant[] = [
   {
     id: 'vce-hyd',
-    name: 'Vasavi College of Engineering',
-    code: 'VCE-HYD-500031',
+    name: 'Vasavi College of Engineering (VCE-HYD)',
+    code: 'VCE-HDO-500031',
     location: 'Ibrahimbagh, Hyderabad',
     logo: '🏛️',
     primaryAccent: '#3B82F6',
@@ -28,7 +28,7 @@ export const INSTITUTIONAL_TENANTS: InstitutionalTenant[] = [
   },
   {
     id: 'cbit-hyd',
-    name: 'Chaitanya Bharathi Institute of Technology',
+    name: 'Chaitanya Bharathi Institute of Technology (CBIT)',
     code: 'CBIT-HYD-500075',
     location: 'Gandipet, Hyderabad',
     logo: '🎓',
@@ -37,13 +37,23 @@ export const INSTITUTIONAL_TENANTS: InstitutionalTenant[] = [
     academicYears: ['2024-2025', '2025-2026'],
   },
   {
-    id: 'iith-hyd',
-    name: 'Indian Institute of Technology Hyderabad',
-    code: 'IITH-HYD-502285',
-    location: 'Kandi, Sangareddy',
-    logo: '🏛️',
+    id: 'iiit-hyd',
+    name: 'IIIT Hyderabad (IIITH)',
+    code: 'IIIT-HYD-500032',
+    location: 'Gachibowli, Hyderabad',
+    logo: '⚡',
     primaryAccent: '#8B5CF6',
     secondaryAccent: '#6D28D9',
+    academicYears: ['2024-2025', '2025-2026'],
+  },
+  {
+    id: 'ou-hyd',
+    name: 'Osmania University (OU)',
+    code: 'OU-UCE-500007',
+    location: 'Amberpet, Hyderabad',
+    logo: '🏛️',
+    primaryAccent: '#F59E0B',
+    secondaryAccent: '#D97706',
     academicYears: ['2024-2025', '2025-2026'],
   },
 ];
