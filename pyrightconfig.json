@@ -2,6 +2,7 @@
   "venvPath": "zeno-core-backend",
   "venv": "venv",
   "extraPaths": [
-    "zeno-core-backend"
+    "zeno-core-backend",
+    "zeno-core-backend/venv/Lib/site-packages"
   ]
 }
