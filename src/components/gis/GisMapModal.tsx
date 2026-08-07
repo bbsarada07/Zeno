@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin, Navigation, Sparkles, Building2, Layers } from 'lucide-react';
+import { X, MapPin, Navigation, Sparkles } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import type { GisRouteStep } from '../../types';
 
@@ -113,6 +113,21 @@ export const GisMapModal: React.FC = () => {
   const { isGisModalOpen, setIsGisModalOpen } = useApp();
   const [selectedNode, setSelectedNode] = useState<RoomNode>(ROOM_NODES[0]);
   const [activeStepIndex, setActiveStepIndex] = useState<number>(3);
+
+  useEffect(() => {
+    const handleGisTrigger = (e: any) => {
+      if (e.detail) {
+        const roomNum = e.detail.room_number || '';
+        const found = ROOM_NODES.find((n) => n.label.toLowerCase().includes(roomNum.toLowerCase()) || n.id.toLowerCase().includes(roomNum.toLowerCase()));
+        if (found) {
+          setSelectedNode(found);
+        }
+        setIsGisModalOpen(true);
+      }
+    };
+    window.addEventListener('zeno:spatial_gis_trigger', handleGisTrigger);
+    return () => window.removeEventListener('zeno:spatial_gis_trigger', handleGisTrigger);
+  }, [setIsGisModalOpen]);
 
   if (!isGisModalOpen) return null;
 

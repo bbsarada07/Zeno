@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Send,
   Sparkles,
   Calendar,
   Mail,
   ShieldAlert,
-  GraduationCap,
-  BookOpen,
   Copy,
   CheckCircle2,
   ExternalLink,
+  MapPin,
+  AlertTriangle,
+  FileText,
+  BarChart2,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { AgentTopologyVisualizer } from './AgentTopologyVisualizer';
@@ -19,9 +21,21 @@ export const ChatCanvas: React.FC = () => {
   const { messages, sendMessage, setIsHitlDrawerOpen } = useApp();
   const [inputText, setInputText] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [spatialBadge, setSpatialBadge] = useState<string | null>(null);
 
   const activeDomain: AgentDomain =
     messages[messages.length - 1]?.intentResult?.domain || 'ACADEMIC';
+
+  useEffect(() => {
+    const handleGisEvent = (e: any) => {
+      if (e.detail) {
+        setSpatialBadge('[AGENT: SPATIAL_GIS_ENGINE]');
+        setTimeout(() => setSpatialBadge(null), 8000);
+      }
+    };
+    window.addEventListener('zeno:spatial_gis_trigger', handleGisEvent);
+    return () => window.removeEventListener('zeno:spatial_gis_trigger', handleGisEvent);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,14 +44,25 @@ export const ChatCanvas: React.FC = () => {
     setInputText('');
   };
 
+  const handleChipClick = (promptText: string) => {
+    sendMessage(promptText);
+  };
+
   const handleCopyText = (id: string, text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const quickActionChips = [
+    { label: 'Where is my next lab?', icon: '📍', prompt: 'Where is my next lab?' },
+    { label: 'Can I bunk Java Lab today?', icon: '⚠️', prompt: 'Can I bunk Java Lab today?' },
+    { label: "Show today's section schedule", icon: '📅', prompt: "Show today's section schedule" },
+    { label: 'Check academic standing & attendance', icon: '📊', prompt: 'Check academic standing & attendance' },
+  ];
+
   return (
-    <div className="h-full flex flex-col zeno-glass-card p-4 sm:p-5 space-y-4 font-sans select-none overflow-hidden">
+    <div className="h-full flex flex-col zeno-glass-card p-4 sm:p-5 space-y-3 font-sans select-none overflow-hidden">
       {/* Live Agent Topology Node Visualizer */}
       <AgentTopologyVisualizer activeDomain={activeDomain} />
 
@@ -46,15 +71,15 @@ export const ChatCanvas: React.FC = () => {
         {messages.map((msg) => {
           const isUser = msg.sender === 'user';
           const intent = msg.intentResult;
+          const displayBadge = spatialBadge && !isUser ? spatialBadge : intent ? `[AGENT: ${intent.agentName}]` : null;
 
           return (
             <div key={msg.id} className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} space-y-1`}>
               {/* Agent Domain Badge */}
-              {!isUser && intent && (
-                <div className="flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 text-[10px] font-mono font-bold text-cyan-400">
+              {!isUser && displayBadge && (
+                <div className="flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-slate-900 border border-cyan-500/40 text-[10px] font-mono font-bold text-cyan-400 shadow-[0_0_10px_rgba(0,240,255,0.2)]">
                   <Sparkles className="w-3 h-3 text-cyan-400" />
-                  <span>[AGENT: {intent.agentName}]</span>
-                  <span className="text-slate-500">• Confidence: {Math.round(intent.confidence * 100)}%</span>
+                  <span>{displayBadge}</span>
                 </div>
               )}
 
@@ -188,13 +213,27 @@ export const ChatCanvas: React.FC = () => {
         })}
       </div>
 
+      {/* Interactive Quick Action Chips (Step 7 UX Polish) */}
+      <div className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none">
+        {quickActionChips.map((chip, idx) => (
+          <button
+            key={idx}
+            onClick={() => handleChipClick(chip.prompt)}
+            className="px-2.5 py-1 rounded-xl bg-slate-950/80 hover:bg-cyan-500/20 border border-slate-800 hover:border-cyan-500/40 text-[11px] font-mono text-slate-300 hover:text-cyan-300 transition-all shrink-0 flex items-center space-x-1.5"
+          >
+            <span>{chip.icon}</span>
+            <span>{chip.label}</span>
+          </button>
+        ))}
+      </div>
+
       {/* Input Prompt Form */}
       <form onSubmit={handleSubmit} className="flex items-center space-x-2 pt-2 border-t border-slate-800/80">
         <input
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder="Ask Zeno about Attendance, Placement Drives, Events, Email Drafts, or Grievances..."
+          placeholder="Ask Zeno about Attendance, Next Lab, Bunking Risk, Placement Drives, or Grievances..."
           className="flex-1 bg-slate-950 dark:bg-slate-950 html-light:bg-slate-100 border border-slate-800 dark:border-slate-800 html-light:border-slate-300 rounded-xl p-3 text-xs text-slate-100 dark:text-slate-100 html-light:text-slate-900 outline-none focus:border-cyan-500 font-mono"
         />
         <button
