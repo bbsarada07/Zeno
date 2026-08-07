@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
+import { useApp } from '../../context/AppContext';
 
 export const DashboardBackgroundCanvas: React.FC = () => {
+  const { theme } = useApp();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -22,25 +24,22 @@ export const DashboardBackgroundCanvas: React.FC = () => {
 
     window.addEventListener('resize', handleResize);
 
-    // Particle nodes
-    const particleCount = 45;
+    const particleCount = 40;
+    const isLight = theme === 'light';
+
     const particles = Array.from({ length: particleCount }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
       vx: (Math.random() - 0.5) * 0.4,
       vy: (Math.random() - 0.5) * 0.4,
       radius: Math.random() * 1.5 + 0.5,
-      alpha: Math.random() * 0.4 + 0.1,
+      alpha: Math.random() * 0.3 + 0.1,
     }));
 
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // Deep dark background overlay
-      ctx.fillStyle = 'rgba(5, 7, 10, 0.95)';
-      ctx.fillRect(0, 0, width, height);
-
-      // Draw subtle connections
+      // Draw subtle grid connections
       for (let i = 0; i < particleCount; i++) {
         for (let j = i + 1; j < particleCount; j++) {
           const dx = particles[i].x - particles[j].x;
@@ -51,7 +50,9 @@ export const DashboardBackgroundCanvas: React.FC = () => {
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `rgba(56, 189, 248, ${0.08 * (1 - dist / 140)})`;
+            ctx.strokeStyle = isLight
+              ? `rgba(15, 23, 42, ${0.05 * (1 - dist / 140)})`
+              : `rgba(0, 240, 255, ${0.08 * (1 - dist / 140)})`;
             ctx.lineWidth = 0.6;
             ctx.stroke();
           }
@@ -70,7 +71,9 @@ export const DashboardBackgroundCanvas: React.FC = () => {
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0, 240, 255, ${p.alpha})`;
+        ctx.fillStyle = isLight
+          ? `rgba(59, 130, 246, ${p.alpha})`
+          : `rgba(0, 240, 255, ${p.alpha})`;
         ctx.fill();
       });
 
@@ -83,12 +86,24 @@ export const DashboardBackgroundCanvas: React.FC = () => {
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [theme]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0 opacity-40 transition-opacity duration-1000"
-    />
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none">
+      {/* Animated Gradient Mesh Layer */}
+      <div
+        className={`absolute inset-0 transition-colors duration-500 ${
+          theme === 'light'
+            ? 'bg-gradient-to-tr from-[#F8FAFC] via-[#F1F5F9] to-[#E2E8F0]'
+            : 'bg-gradient-to-tr from-[#05070A] via-[#0A101D] to-[#0D1527]'
+        }`}
+      />
+
+      {/* Translucent Dot Grid Overlay */}
+      <div className="absolute inset-0 bg-noise opacity-30 pointer-events-none" />
+
+      {/* Particle Canvas */}
+      <canvas ref={canvasRef} className="absolute inset-0 opacity-50 pointer-events-none" />
+    </div>
   );
 };

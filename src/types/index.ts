@@ -186,3 +186,24 @@ export interface WaiverPetition {
   ocrVerified: boolean;
   documentFileName: string;
 }
+
+export interface PetitionRecord {
+  id: string;
+  studentName: string;
+  rollNumber: string;
+  department: string;
+  category: 'Medical Waiver' | 'Sports Duty' | 'Academic Condonation';
+  datesAffected: string;
+  classesMissed: number;
+  currentAttendance: number;
+  postWaiverAttendance: number;
+  shortfallPercentage: number;
+  status: 'Pending HOD Approval' | 'Recommended by Faculty' | 'HOD Approved' | 'Rejected';
+  hospitalName?: string;
+  doctorName?: string;
+  ocrScore: number;
+  ocrDetails: string;
+  documentFileName: string;
+  petitionLetter: string;
+  submittedAt: string;
+}

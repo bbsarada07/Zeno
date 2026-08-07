@@ -11,7 +11,8 @@ import type {
   PlacementDrive,
   DigitalTwinPath,
   InterviewReplay,
-  RecruiterFeedback
+  RecruiterFeedback,
+  PetitionRecord,
 } from '../types';
 import {
   INSTITUTIONAL_TENANTS,
@@ -22,7 +23,7 @@ import {
   MOCK_RECRUITER_FEEDBACK,
   MOCK_INTERVIEW_REPLAYS,
   MOCK_WAIVER_PETITION,
-  MOCK_CRYPTOGRAPHIC_RECEIPT
+  INITIAL_PENDING_PETITIONS,
 } from '../data/mockData';
 import confetti from 'canvas-confetti';
 
@@ -65,8 +66,13 @@ interface AppContextType {
   isInterviewModalOpen: boolean;
   setIsInterviewModalOpen: (open: boolean) => void;
 
-  // Waiver Petition
+  // Waiver Petition & HOD Action Pipeline
   waiverPetition: WaiverPetition;
+  petitions: PetitionRecord[];
+  submitPetition: (newPet: Omit<PetitionRecord, 'id' | 'submittedAt'>) => void;
+  approvePetition: (id: string, notes?: string) => void;
+  rejectPetition: (id: string, notes?: string) => void;
+  batchApprovePetitions: () => void;
 
   // HITL Approval & Cryptographic Proof Receipt
   hitlPayload: HITLPayload;
@@ -102,21 +108,34 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const AUTH_VAULT_STORAGE_KEY = 'Zeno_Auth_Vault';
+const PETITIONS_STORAGE_KEY = 'zeno_pending_petitions';
+const THEME_STORAGE_KEY = 'zeno_theme_mode';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Theme State
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    try {
+      const saved = localStorage.getItem(THEME_STORAGE_KEY);
+      if (saved === 'light' || saved === 'dark') return saved;
+    } catch (e) {
+      console.warn('Could not read zeno_theme_mode:', e);
+    }
+    return 'dark';
+  });
 
-  const toggleTheme = () => {
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(nextTheme);
-    if (nextTheme === 'light') {
+  useEffect(() => {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+    if (theme === 'light') {
       document.documentElement.classList.add('light');
       document.documentElement.classList.remove('dark');
     } else {
       document.documentElement.classList.add('dark');
       document.documentElement.classList.remove('light');
     }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
   // Auth Vault & Session State
@@ -195,6 +214,85 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Student Profile
   const [student] = useState<StudentProfile>(MOCK_STUDENT);
 
+  // Shared Petitions Pipeline State
+  const [petitions, setPetitions] = useState<PetitionRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem(PETITIONS_STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.warn('Failed to parse zeno_pending_petitions:', e);
+    }
+    return INITIAL_PENDING_PETITIONS;
+  });
+
+  // Sync petitions to localStorage
+  useEffect(() => {
+    localStorage.setItem(PETITIONS_STORAGE_KEY, JSON.stringify(petitions));
+  }, [petitions]);
+
+  const submitPetition = (newPetData: Omit<PetitionRecord, 'id' | 'submittedAt'>) => {
+    const newRecord: PetitionRecord = {
+      ...newPetData,
+      id: `pet-2026-${Math.floor(100 + Math.random() * 900)}`,
+      submittedAt: 'Just Now',
+    };
+    setPetitions((prev) => [newRecord, ...prev]);
+
+    confetti({
+      particleCount: 60,
+      spread: 60,
+      origin: { y: 0.6 },
+    });
+  };
+
+  const approvePetition = (id: string, _notes?: string) => {
+    setPetitions((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, status: 'HOD Approved' } : p))
+    );
+
+    const pet = petitions.find((p) => p.id === id);
+
+    // Create execution proof receipt
+    const receipt: CryptographicReceipt = {
+      actionId: `ACT-ZENO-${Math.floor(10000 + Math.random() * 90000)}-VCE`,
+      txHash: `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
+      blockHeight: 18492041 + Math.floor(Math.random() * 500),
+      timestamp: new Date().toISOString(),
+      tenantCode: selectedTenant?.code || 'VCE-HDO-500031',
+      studentRollNumber: pet?.rollNumber || student?.rollNumber || '2451-22-733-001',
+      targetRecipient: `Dr. Marcus Vance (HOD CSE)`,
+      payloadSummary: pet ? `${pet.category} Condonation (-${pet.shortfallPercentage}%)` : 'Attendance Condensation',
+      verifiedBySignature: `ed25519:vce-gov-cert-key-${Math.floor(1000 + Math.random() * 9000)}`,
+    };
+
+    setCryptographicReceipt(receipt);
+    setIsReceiptModalOpen(true);
+
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+    });
+  };
+
+  const rejectPetition = (id: string, _notes?: string) => {
+    setPetitions((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, status: 'Rejected' } : p))
+    );
+  };
+
+  const batchApprovePetitions = () => {
+    setPetitions((prev) =>
+      prev.map((p) => (p.status !== 'Rejected' ? { ...p, status: 'HOD Approved' } : p))
+    );
+
+    confetti({
+      particleCount: 120,
+      spread: 80,
+      origin: { y: 0.6 },
+    });
+  };
+
   // GIS Location Map Modal
   const [isGisModalOpen, setIsGisModalOpen] = useState(false);
 
@@ -230,7 +328,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setWaiverPetition((prev) => ({ ...prev, status: 'HOD Approved' }));
     }
 
-    // Trigger confetti
     confetti({
       particleCount: 100,
       spread: 70,
@@ -239,7 +336,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setIsHitlDrawerOpen(false);
 
-    // Create execution proof receipt
     const receipt: CryptographicReceipt = {
       actionId: `ACT-ZENO-${Math.floor(10000 + Math.random() * 90000)}-VCE`,
       txHash: `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
@@ -398,6 +494,11 @@ I have generated the formal petition payload. Click below to review and approve 
         isInterviewModalOpen,
         setIsInterviewModalOpen,
         waiverPetition,
+        petitions,
+        submitPetition,
+        approvePetition,
+        rejectPetition,
+        batchApprovePetitions,
         hitlPayload,
         isHitlDrawerOpen,
         setIsHitlDrawerOpen,

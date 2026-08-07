@@ -363,9 +363,91 @@ export const MOCK_CRYPTOGRAPHIC_RECEIPT: CryptographicReceipt = {
   txHash: '0x8f7a9d3c2b1e4f5a6b0c9d8e7f6a5b4c3d2e1f0a',
   blockHeight: 18492041,
   timestamp: new Date().toISOString(),
-  tenantCode: 'VCE-HYD-500031',
+  tenantCode: 'VCE-HDO-500031',
   studentRollNumber: '2451-22-733-001',
   targetRecipient: 'Dr. Marcus Vance (HOD CSE)',
   payloadSummary: 'Attendance Shortage Waiver Condensation (72.5% -> 75.2%)',
   verifiedBySignature: 'ed25519:vce-gov-cert-key-9902',
 };
+
+export const INITIAL_PENDING_PETITIONS: PetitionRecord[] = [
+  {
+    id: 'pet-2026-001',
+    studentName: 'Alex Rivera',
+    rollNumber: '2451-22-733-001',
+    department: 'Computer Science & Engineering',
+    category: 'Medical Waiver',
+    datesAffected: '14 July 2026 – 18 July 2026',
+    classesMissed: 14,
+    currentAttendance: 72.5,
+    postWaiverAttendance: 75.2,
+    shortfallPercentage: 2.5,
+    status: 'Pending HOD Approval',
+    hospitalName: 'Apollo Hospitals, Jubilee Hills',
+    doctorName: 'Dr. R. K. Sharma (MD, Internal Medicine)',
+    ocrScore: 96,
+    ocrDetails: 'Apollo Medical Certificate Verified (Cert ID: APH-2026-8819)',
+    documentFileName: 'Apollo_Medical_Certificate_July2026.pdf',
+    petitionLetter: `Respected Head of Department,
+
+I am writing to formally request condensation for my attendance in Semester VI (Current: 72.5%, Required: 75.0%). I was unable to attend classes between July 14 and July 18 due to severe viral fever.
+
+I have attached the verified medical certificate from Apollo Hospitals (Cert ID: APH-2026-8819). I request you to kindly approve the 2.5% attendance waiver so I remain eligible for upcoming tier-1 placement drives.
+
+Sincerely,
+Alex Rivera (Roll No: 2451-22-733-001)`,
+    submittedAt: 'Today, 09:30 AM',
+  },
+  {
+    id: 'pet-2026-002',
+    studentName: 'Priya Sharma',
+    rollNumber: '2451-22-733-042',
+    department: 'Computer Science & Engineering',
+    category: 'Sports Duty',
+    datesAffected: '20 July 2026 – 22 July 2026',
+    classesMissed: 8,
+    currentAttendance: 73.0,
+    postWaiverAttendance: 75.8,
+    shortfallPercentage: 2.0,
+    status: 'Recommended by Faculty',
+    hospitalName: 'OU Inter-University Sports Board',
+    doctorName: 'Prof. K. R. Chary (Sports Director)',
+    ocrScore: 98,
+    ocrDetails: 'Inter-University Badminton Championship Delegation Letter',
+    documentFileName: 'OU_Sports_Delegation_Letter_2026.pdf',
+    petitionLetter: `Respected HOD,
+
+I represented our college at the Inter-University Badminton Tournament held at Gachibowli Stadium from 20th to 22nd July 2026.
+
+Kindly grant duty leave for 8 missed hours as per university sports guidelines.
+
+Thanking you,
+Priya Sharma (2451-22-733-042)`,
+    submittedAt: 'Yesterday, 04:15 PM',
+  },
+  {
+    id: 'pet-2026-003',
+    studentName: 'Rohan Mehta',
+    rollNumber: '2451-22-733-088',
+    department: 'Computer Science & Engineering',
+    category: 'Academic Condonation',
+    datesAffected: '02 August 2026 – 04 August 2026',
+    classesMissed: 10,
+    currentAttendance: 71.8,
+    postWaiverAttendance: 75.0,
+    shortfallPercentage: 3.2,
+    status: 'Pending HOD Approval',
+    hospitalName: 'Smart Telangana Hackathon Committee',
+    doctorName: 'Dr. V. S. Rao (Convener)',
+    ocrScore: 94,
+    ocrDetails: 'Smart India Hackathon Grand Finale Attendance Certificate',
+    documentFileName: 'SIH_Grand_Finale_Certificate.pdf',
+    petitionLetter: `Respected Sir,
+
+Our team participated in the SIH Hackathon Grand Finale representing our institution. Requesting academic condonation for missed lab sessions.
+
+Regards,
+Rohan Mehta (2451-22-733-088)`,
+    submittedAt: '3 Days Ago',
+  },
+];
