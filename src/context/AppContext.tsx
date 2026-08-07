@@ -73,6 +73,7 @@ interface AppContextType {
   approvePetition: (id: string, notes?: string) => void;
   rejectPetition: (id: string, notes?: string) => void;
   batchApprovePetitions: () => void;
+  resetDemoState: () => void;
 
   // HITL Approval & Cryptographic Proof Receipt
   hitlPayload: HITLPayload;
@@ -145,7 +146,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const [authSession, setAuthSession] = useState<AuthVaultSession | null>(() => {
     try {
-      const saved = localStorage.getItem(AUTH_VAULT_STORAGE_KEY) || localStorage.getItem('zeno_user_session');
+      const saved = localStorage.getItem(AUTH_VAULT_STORAGE_KEY) || localStorage.getItem('zeno_user_session') || localStorage.getItem('zeno_session');
       if (saved) {
         return JSON.parse(saved);
       }
@@ -162,9 +163,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (authSession) {
       localStorage.setItem(AUTH_VAULT_STORAGE_KEY, JSON.stringify(authSession));
       localStorage.setItem('zeno_user_session', JSON.stringify(authSession));
+      localStorage.setItem('zeno_session', JSON.stringify(authSession));
     } else {
       localStorage.removeItem(AUTH_VAULT_STORAGE_KEY);
       localStorage.removeItem('zeno_user_session');
+      localStorage.removeItem('zeno_session');
       localStorage.removeItem('zeno_token');
     }
   }, [authSession]);
@@ -195,17 +198,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return true;
   };
 
+  // Safe Instant Logout Rollback (No dark screen delay!)
   const logoutSession = () => {
-    setIsLoggingOut(true);
-    setTimeout(() => {
-      setAuthSession(null);
-      localStorage.removeItem(AUTH_VAULT_STORAGE_KEY);
-      localStorage.removeItem('zeno_token');
-      localStorage.removeItem('zeno_user_session');
-      setIsAuthModalOpen(true);
-      setActiveTab('dashboard');
-      setIsLoggingOut(false);
-    }, 600);
+    localStorage.removeItem(AUTH_VAULT_STORAGE_KEY);
+    localStorage.removeItem('zeno_token');
+    localStorage.removeItem('zeno_session');
+    localStorage.removeItem('zeno_user_session');
+    setAuthSession(null);
+    setIsLoggingOut(false);
+    setIsAuthModalOpen(true);
+    setActiveTab('dashboard');
   };
 
   // Navigation Active Tab
@@ -289,6 +291,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     confetti({
       particleCount: 120,
       spread: 80,
+      origin: { y: 0.6 },
+    });
+  };
+
+  const resetDemoState = () => {
+    setPetitions(INITIAL_PENDING_PETITIONS);
+    localStorage.setItem(PETITIONS_STORAGE_KEY, JSON.stringify(INITIAL_PENDING_PETITIONS));
+    confetti({
+      particleCount: 90,
+      spread: 70,
       origin: { y: 0.6 },
     });
   };
@@ -499,6 +511,7 @@ I have generated the formal petition payload. Click below to review and approve 
         approvePetition,
         rejectPetition,
         batchApprovePetitions,
+        resetDemoState,
         hitlPayload,
         isHitlDrawerOpen,
         setIsHitlDrawerOpen,
