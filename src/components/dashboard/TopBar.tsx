@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { INSTITUTIONAL_TENANTS } from '../../data/mockData';
+import { KernelStatus } from './KernelStatus';
 import type { UserRole, NavigationTab } from '../../types';
 
 export const TopBar: React.FC = () => {
@@ -61,6 +62,11 @@ export const TopBar: React.FC = () => {
               Autonomous Smart Campus Governance
             </div>
           </div>
+        </div>
+
+        {/* Live Render Kernel Connection Detector */}
+        <div className="hidden md:block">
+          <KernelStatus />
         </div>
 
         {/* Tenant Selector Dropdown */}
