@@ -31,8 +31,75 @@ import {
 import { classifyUserIntent } from '../lib/intentClassifier';
 import confetti from 'canvas-confetti';
 
+export const COMPANY_DRAFTS: Record<string, PlacementApplicationDraft> = {
+  google: {
+    companyName: 'Google Inc.',
+    roleTitle: 'Software Engineer - AI Systems (L3)',
+    candidateName: 'Alex Rivera',
+    rollNumber: '2451-22-733-001',
+    cgpa: 8.84,
+    coverLetterBody: `Dear Google University Relations & Hiring Team,
+
+I am writing to express my enthusiastic application for the Software Engineer - AI Systems (L3) role. As a final-year Computer Science student at Vasavi College of Engineering (CGPA: 8.84/10.0), I specialize in LLM orchestrations, PyTorch neural models, and Qdrant Vector RAG architectures.
+
+My capstone platform, Zeno, leverages autonomous agent topologies and sub-agent token routers to reduce administrative SLA latencies by 84%. I am eager to bring my expertise in distributed AI systems to Google.
+
+Sincerely,
+Alex Rivera (2451-22-733-001)
+B.Tech CSE, Vasavi College of Engineering`,
+  },
+  microsoft: {
+    companyName: 'Microsoft Corporation',
+    roleTitle: 'Full Stack Cloud Engineer (Azure Core)',
+    candidateName: 'Alex Rivera',
+    rollNumber: '2451-22-733-001',
+    cgpa: 8.84,
+    coverLetterBody: `Dear Microsoft University Recruiting Team,
+
+I am excited to submit my candidate profile for the Full Stack Cloud Engineer role. With a 8.84 CGPA and extensive hands-on experience building TypeScript microservices on Azure, I have architected high-throughput REST API gateways and real-time state synchronizations.
+
+My engineering background aligns closely with Azure Core's push toward resilient serverless functions and event-driven microservices. I welcome the opportunity to contribute to Microsoft's cloud platform.
+
+Sincerely,
+Alex Rivera (2451-22-733-001)
+B.Tech CSE, Vasavi College of Engineering`,
+  },
+  amazon: {
+    companyName: 'Amazon Web Services (AWS)',
+    roleTitle: 'Systems Development Engineer (SDE-I)',
+    candidateName: 'Alex Rivera',
+    rollNumber: '2451-22-733-001',
+    cgpa: 8.84,
+    coverLetterBody: `Dear AWS Campus Recruiting Team,
+
+I am applying for the Systems Development Engineer (SDE-I) position at Amazon Web Services. My technical focus centers on high-availability Linux C++ networking, low-latency kernel memory management, and distributed systems scaling.
+
+I have engineered multi-node backend clusters capable of processing 10,000+ concurrent requests with sub-15ms p99 latencies. I am eager to apply AWS Customer Obsession principles to global cloud infrastructure.
+
+Sincerely,
+Alex Rivera (2451-22-733-001)
+B.Tech CSE, Vasavi College of Engineering`,
+  },
+  swiggy: {
+    companyName: 'Swiggy',
+    roleTitle: 'Backend Platform Engineer',
+    candidateName: 'Alex Rivera',
+    rollNumber: '2451-22-733-001',
+    cgpa: 8.84,
+    coverLetterBody: `Dear Swiggy Campus Engineering Team,
+
+I am writing to apply for the Backend Platform Engineer position. My core engineering strengths lie in real-time event streaming via Apache Kafka, Redis caching layers, and high-concurrency Go/TypeScript API gateways.
+
+I have designed event-driven microservices handling dynamic geo-spatial calculations and real-time order dispatch simulation models. I am thrilled at the prospect of optimizing Swiggy's hyper-local delivery engine.
+
+Sincerely,
+Alex Rivera (2451-22-733-001)
+B.Tech CSE, Vasavi College of Engineering`,
+  },
+};
+
 interface AppContextType {
-  // Theme
+  // Theme Engine
   theme: 'dark' | 'light';
   toggleTheme: () => void;
 
@@ -52,7 +119,7 @@ interface AppContextType {
   isAuthModalOpen: boolean;
   setIsAuthModalOpen: (open: boolean) => void;
 
-  // Navigation
+  // Navigation Tabs
   activeTab: NavigationTab;
   setActiveTab: (tab: NavigationTab) => void;
 
@@ -64,7 +131,7 @@ interface AppContextType {
   setIsGisModalOpen: (open: boolean) => void;
   openGisNavigation: () => void;
 
-  // Placement AI Workspace
+  // Placement AI Workspace & 4 Company Drafts
   placementDrives: PlacementDrive[];
   digitalTwins: DigitalTwinPath[];
   recruiterFeedback: RecruiterFeedback;
@@ -75,12 +142,14 @@ interface AppContextType {
   setIsInterviewModalOpen: (open: boolean) => void;
   placementDraft: PlacementApplicationDraft;
   setPlacementDraft: React.Dispatch<React.SetStateAction<PlacementApplicationDraft>>;
+  triggerPlacementApplication: (companyKey: string) => void;
 
   // Waiver Petition & HOD Action Pipeline
   waiverPetition: WaiverPetition;
   petitions: PetitionRecord[];
   medicalWaiverDraft: MedicalWaiverDraft;
   setMedicalWaiverDraft: React.Dispatch<React.SetStateAction<MedicalWaiverDraft>>;
+  triggerMedicalWaiverApplication: () => void;
   submitPetition: (newPet: Omit<PetitionRecord, 'id' | 'submittedAt'>) => void;
   approvePetition: (id: string, notes?: string) => void;
   rejectPetition: (id: string, notes?: string) => void;
@@ -140,6 +209,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     localStorage.setItem(THEME_STORAGE_KEY, theme);
+    document.documentElement.setAttribute('data-theme', theme);
     if (theme === 'light') {
       document.documentElement.classList.add('light');
       document.documentElement.classList.remove('dark');
@@ -196,6 +266,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         rollNumber: '2451-22-733-001',
         role: authSession.role,
         tenant: authSession.tenantCode,
+        department: 'Computer Science & Engineering',
       }));
     }
   }, [authSession]);
@@ -226,7 +297,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return true;
   };
 
-  // Robust Logout Flow (localStorage.clear() & clean React re-render)
+  // Fail-Safe Logout Handler: purges localStorage, resets session to null
   const logoutSession = () => {
     localStorage.clear();
     setAuthSession(null);
@@ -239,26 +310,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Navigation Active Tab
   const [activeTab, setActiveTab] = useState<NavigationTab>('dashboard');
 
+  // Reset drawer state on tab switch to prevent template leakage
+  useEffect(() => {
+    setIsHitlDrawerOpen(false);
+  }, [activeTab]);
+
   // Student Profile
   const [student] = useState<StudentProfile>(MOCK_STUDENT);
 
-  // Workflow Template Isolation Drafts
-  const [placementDraft, setPlacementDraft] = useState<PlacementApplicationDraft>({
-    companyName: 'Google Inc.',
-    roleTitle: 'Software Engineer - AI Systems (L3)',
-    candidateName: 'Alex Rivera',
-    rollNumber: '2451-22-733-001',
-    cgpa: 8.84,
-    coverLetterBody: `Dear University Relations & Hiring Team at Google,
+  // Placement Draft State
+  const [placementDraft, setPlacementDraft] = useState<PlacementApplicationDraft>(COMPANY_DRAFTS.google);
 
-I am writing to express my enthusiastic application for the Software Engineer - AI Systems (L3) position. As a final-year Computer Science student at Vasavi College of Engineering (CGPA: 8.84/10.0, 0 Active Backlogs), I have developed hands-on expertise in distributed PyTorch model training, TypeScript API engines, and vector indexing.
-
-My portfolio includes Zeno—an autonomous smart campus governance platform utilizing multi-agent LangGraph workflows and Qdrant vector retrieval. I am eager to contribute to Google's next-generation AI infrastructure.
-
-Sincerely,
-Alex Rivera (2451-22-733-001)`,
-  });
-
+  // Medical Waiver Draft State
   const [medicalWaiverDraft, setMedicalWaiverDraft] = useState<MedicalWaiverDraft>({
     category: 'Medical Waiver',
     datesAffected: '14 July 2026 – 18 July 2026',
@@ -388,6 +451,51 @@ Alex Rivera (Roll No: 2451-22-733-001)`,
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const [cryptographicReceipt, setCryptographicReceipt] = useState<CryptographicReceipt | null>(null);
 
+  // Dynamic Trigger 1: Placement Drive Cover Letter Application
+  const triggerPlacementApplication = (companyKey: string) => {
+    const draft = COMPANY_DRAFTS[companyKey] || COMPANY_DRAFTS.google;
+    setPlacementDraft(draft);
+
+    setHitlPayload({
+      id: `ACT-PLACEMENT-${Date.now()}`,
+      title: `Submit Candidate Application for ${draft.companyName}`,
+      description: `Official campus recruitment application for ${draft.roleTitle} at ${draft.companyName}.`,
+      targetRecipient: `Campus University Relations - ${draft.companyName}`,
+      recipientEmail: `recruiting@${draft.companyName.toLowerCase().replace(/[^a-z]/g, '')}.com`,
+      status: 'pending',
+      editableBody: draft.coverLetterBody,
+      metadata: {
+        type: 'placement_enrollment',
+        studentName: 'Alex Rivera',
+        rollNumber: '2451-22-733-001',
+        companyName: draft.companyName,
+      },
+    });
+
+    setIsHitlDrawerOpen(true);
+  };
+
+  // Dynamic Trigger 2: Medical Attendance Waiver Petition
+  const triggerMedicalWaiverApplication = () => {
+    setHitlPayload({
+      id: `ACT-WAIVER-${Date.now()}`,
+      title: `Submit Attendance Waiver Petition (Apollo Certificate APH-2026-8819)`,
+      description: `Formal condonation request for 14 missed classes (2.5% shortage) due to medical fever.`,
+      targetRecipient: `Dr. Marcus Vance (HOD CSE)`,
+      recipientEmail: `hod.cse@vce.ac.in`,
+      status: 'pending',
+      editableBody: medicalWaiverDraft.petitionLetter,
+      metadata: {
+        type: 'medical_waiver',
+        studentName: 'Alex Rivera',
+        rollNumber: '2451-22-733-001',
+        daysMissed: 14,
+      },
+    });
+
+    setIsHitlDrawerOpen(true);
+  };
+
   const approveHitlAction = (editedBody?: string) => {
     if (editedBody) {
       setHitlPayload((prev) => ({ ...prev, editableBody: editedBody, status: 'approved' }));
@@ -442,7 +550,7 @@ Alex Rivera (Roll No: 2451-22-733-001)`,
       sender: 'agent',
       text: `Welcome back, **${MOCK_STUDENT.name}** (${MOCK_STUDENT.rollNumber}).
 
-I am **Zeno**, your Autonomous Smart Campus Governance & Intent Classifier Platform. 
+I am **Zeno**, your Autonomous Smart Campus Governance & Intent Classifier Platform.
 
 Try typing a query about **Attendance**, **Placement Drives**, **Events/Hackathons**, **Email Drafts**, or **Student Complaints**.`,
       timestamp: '10:40 AM',
@@ -526,10 +634,12 @@ Try typing a query about **Attendance**, **Placement Drives**, **Events/Hackatho
         setIsInterviewModalOpen,
         placementDraft,
         setPlacementDraft,
+        triggerPlacementApplication,
         waiverPetition,
         petitions,
         medicalWaiverDraft,
         setMedicalWaiverDraft,
+        triggerMedicalWaiverApplication,
         submitPetition,
         approvePetition,
         rejectPetition,

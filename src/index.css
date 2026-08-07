@@ -1,59 +1,36 @@
 @import "tailwindcss";
 
-@layer base {
-  :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 5.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 5.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --radius: 0.75rem;
+:root,
+[data-theme="dark"] {
+  --bg-primary: #07090e;
+  --surface-card: #0f172a;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --accent-cyan: #06b6d4;
+  --border-color: #1e293b;
 
-    --bg-primary: #05070A;
-    --text-primary: #F8FAFC;
-    --accent-color: #00F0FF;
-    --card-border: rgba(30, 41, 59, 0.6);
-  }
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 5.9%;
+  --card-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --radius: 0.75rem;
+}
 
-  .light {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+[data-theme="light"],
+html.light {
+  --bg-primary: #f8fafc;
+  --surface-card: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --accent-cyan: #0284c7;
+  --border-color: #e2e8f0;
 
-    --bg-primary: #F8FAFC;
-    --text-primary: #0F172A;
-    --card-border: rgba(226, 232, 240, 0.8);
-  }
+  --background: 210 40% 98%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --border: 214.3 31.8% 91.4%;
 }
 
 body {
@@ -63,12 +40,7 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   overflow-x: hidden;
-  transition: background-color 0.35s ease, color 0.35s ease;
-}
-
-html.light body {
-  background-color: #F8FAFC;
-  color: #0F172A;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Custom Scrollbar */
@@ -90,28 +62,20 @@ html.light body {
   background: rgba(161, 161, 170, 0.4);
 }
 
-/* Translucent Glassmorphic Cards */
+/* Translucent Glassmorphic Cards with Theme Variable Contrast Injection */
 .zeno-glass-card {
-  background-color: rgba(9, 13, 20, 0.5);
+  background-color: var(--surface-card);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--card-border);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
   border-radius: 1rem;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .zeno-glass-card:hover {
-  border-color: rgba(var(--accent-color, 0, 240, 255), 0.4);
-}
-
-html.light .zeno-glass-card {
-  background-color: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
-  color: #0F172A;
+  border-color: var(--accent-cyan);
 }
 
 /* Noise & Dot Grid Overlay Utility */
@@ -120,6 +84,7 @@ html.light .zeno-glass-card {
   background-size: 24px 24px;
 }
 
+[data-theme="light"] .bg-noise,
 html.light .bg-noise {
   background-image: radial-gradient(rgba(15, 23, 42, 0.08) 1px, transparent 1px);
   background-size: 24px 24px;

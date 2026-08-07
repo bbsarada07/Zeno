@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { GraduationCap, Award, CheckCircle2, AlertTriangle, ArrowRight, ShieldCheck, UserCheck, Play, Sparkles, FileText } from 'lucide-react';
+import { GraduationCap, ArrowRight, UserCheck, Play, FileText, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const PlacementDashboard: React.FC = () => {
@@ -10,7 +10,7 @@ export const PlacementDashboard: React.FC = () => {
     digitalTwins,
     setIsRecruiterModalOpen,
     setIsInterviewModalOpen,
-    setIsHitlDrawerOpen,
+    triggerPlacementApplication,
     placementDraft,
   } = useApp();
 
@@ -87,9 +87,12 @@ export const PlacementDashboard: React.FC = () => {
         <div className="flex items-center justify-between border-b border-slate-800 pb-2">
           <div className="flex items-center space-x-2 text-xs font-bold text-cyan-400">
             <FileText className="w-4 h-4" />
-            <span>Active Placement Application Draft Pipeline</span>
+            <span>Active Placement Application Draft Pipeline: {placementDraft.companyName} ({placementDraft.roleTitle})</span>
           </div>
-          <span className="text-xs text-emerald-400 font-bold">READY FOR RECRUITER DISPATCH</span>
+          <span className="text-xs text-emerald-400 font-bold flex items-center space-x-1">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>READY FOR DISPATCH</span>
+          </span>
         </div>
         <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 whitespace-pre-wrap leading-relaxed max-h-40 overflow-y-auto">
           {placementDraft.coverLetterBody}
@@ -144,35 +147,45 @@ export const PlacementDashboard: React.FC = () => {
         <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400">Ranked Active Placement Drives</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {placementDrives.map((drive) => (
-            <div key={drive.id} className="p-5 zeno-glass-card space-y-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="text-3xl">{drive.logo}</div>
-                  <div>
-                    <h4 className="font-bold text-sm text-white">{drive.companyName}</h4>
-                    <p className="text-xs text-slate-400">{drive.roleTitle}</p>
+          {placementDrives.map((drive) => {
+            const driveKey = drive.companyName.toLowerCase().includes('google')
+              ? 'google'
+              : drive.companyName.toLowerCase().includes('microsoft')
+              ? 'microsoft'
+              : drive.companyName.toLowerCase().includes('amazon')
+              ? 'amazon'
+              : 'swiggy';
+
+            return (
+              <div key={drive.id} className="p-5 zeno-glass-card space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="text-3xl">{drive.logo}</div>
+                    <div>
+                      <h4 className="font-bold text-sm text-white">{drive.companyName}</h4>
+                      <p className="text-xs text-slate-400">{drive.roleTitle}</p>
+                    </div>
                   </div>
+                  <span className="px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-mono font-bold border border-cyan-500/30">
+                    {drive.ctc}
+                  </span>
                 </div>
-                <span className="px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-mono font-bold border border-cyan-500/30">
-                  {drive.ctc}
-                </span>
-              </div>
 
-              <div className="flex items-center justify-between text-xs pt-1 text-slate-400 font-mono">
-                <span>Location: {drive.location}</span>
-                <span>Deadline: {drive.deadline}</span>
-              </div>
+                <div className="flex items-center justify-between text-xs pt-1 text-slate-400 font-mono">
+                  <span>Location: {drive.location}</span>
+                  <span>Deadline: {drive.deadline}</span>
+                </div>
 
-              <button
-                onClick={() => setIsHitlDrawerOpen(true)}
-                className="w-full py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-2 shadow-[0_0_15px_rgba(0,240,255,0.3)]"
-              >
-                <span>Apply via Agent (HITL Gate)</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
+                <button
+                  onClick={() => triggerPlacementApplication(driveKey)}
+                  className="w-full py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-2 shadow-[0_0_15px_rgba(0,240,255,0.3)]"
+                >
+                  <span>Apply to {drive.companyName} (HITL Gate)</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
