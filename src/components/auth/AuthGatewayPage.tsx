@@ -165,6 +165,13 @@ export const AuthGatewayPage: React.FC = () => {
 
       if (verifyResp?.access_token) {
         localStorage.setItem('zeno_token', verifyResp.access_token);
+        localStorage.setItem('zeno_tenant', selectedTenant.code);
+        localStorage.setItem('zeno_user', JSON.stringify({
+          email,
+          role: activeRole,
+          name: email.split('@')[0].replace('.', ' '),
+          rollNumber: '2451-22-733-001',
+        }));
       }
     } catch (err) {
       console.warn('[AUTH GATEWAY] Network request warning, proceeding with local vault session.', err);

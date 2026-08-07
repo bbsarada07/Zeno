@@ -34,7 +34,7 @@ class ResilientApiClient {
         const parsed = JSON.parse(tenant);
         const tenantCode = parsed.tenantCode || parsed.code || 'VCE-HDO-500031';
         headers.set('X-Tenant-ID', tenantCode);
-      } catch (e) {
+      } catch (_e) {
         headers.set('X-Tenant-ID', tenant);
       }
     } else {
@@ -61,7 +61,8 @@ class ResilientApiClient {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        console.warn(`[ZENO API WARNING] ${url} returned HTTP ${response.status}. Executing Local Memory Enclave Fallback.`);
+        console.warn(`[ZENO API FALLBACK] ${url} returned HTTP ${response.status}. Executing Local Memory Enclave Fallback.`);
+        localStorage.setItem('zeno_demo_mode', 'true');
         return (fallbackData ?? null) as T;
       }
 
@@ -69,11 +70,8 @@ class ResilientApiClient {
       return data as T;
     } catch (error: any) {
       clearTimeout(timeoutId);
-      if (error.name === 'AbortError') {
-        console.warn(`[ZENO API TIMEOUT] ${url} timed out after ${timeoutMs}ms. EXECUTING LOCAL MEMORY ENCLAVE FALLBACK.`);
-      } else {
-        console.warn(`[ZENO API ERROR] Connection to ${url} failed. EXECUTING LOCAL MEMORY ENCLAVE FALLBACK.`, error);
-      }
+      console.warn(`[ZENO API FALLBACK] ${url} request failed. Executing Local Memory Enclave Fallback.`, error);
+      localStorage.setItem('zeno_demo_mode', 'true');
       return (fallbackData ?? null) as T;
     }
   }
@@ -109,11 +107,15 @@ class ResilientApiClient {
         ...options,
       });
       clearTimeout(timeoutId);
-      if (!response.ok) return (fallbackData ?? null) as T;
+      if (!response.ok) {
+        localStorage.setItem('zeno_demo_mode', 'true');
+        return (fallbackData ?? null) as T;
+      }
       return (await response.json()) as T;
-    } catch (e) {
+    } catch (_e) {
       clearTimeout(timeoutId);
-      console.warn(`[ZENO API UPLOAD FALLBACK] ${url} upload timed out or failed. Returning local fallback.`);
+      console.warn(`[ZENO API FALLBACK] ${url} upload timed out or failed. Executing Local Memory Enclave Fallback.`);
+      localStorage.setItem('zeno_demo_mode', 'true');
       return (fallbackData ?? null) as T;
     }
   }
@@ -121,12 +123,12 @@ class ResilientApiClient {
   public async checkHealth(): Promise<boolean> {
     try {
       const data = await this.get<any>('/health', null, { timeoutMs: 3500 });
-      if (data && (data.status === 'ok' || data.status === 'healthy' || data.healthy === true)) {
+      if (data && (data.status === 'online' || data.status === 'healthy' || data.status === 'ok' || data.healthy === true)) {
         return true;
       }
       const docsResp = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/docs`, { method: 'HEAD', signal: AbortSignal.timeout(3500) });
       return docsResp.status < 500;
-    } catch (e) {
+    } catch (_e) {
       return false;
     }
   }
