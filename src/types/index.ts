@@ -208,7 +208,16 @@ export interface PetitionRecord {
   submittedAt: string;
 }
 
-export type AgentDomain = 'ACADEMIC' | 'PLACEMENT' | 'EVENTS' | 'COMMUNICATION' | 'STUDENT_SERVICE';
+export type AgentDomain =
+  | 'ACADEMIC_GIS'
+  | 'PLACEMENT_PIPELINE'
+  | 'EVENTS_ROUTER'
+  | 'GOVERNANCE_ROUTER'
+  | 'ACADEMIC'
+  | 'PLACEMENT'
+  | 'EVENTS'
+  | 'COMMUNICATION'
+  | 'STUDENT_SERVICE';
 
 export interface EventCardData {
   eventName: string;

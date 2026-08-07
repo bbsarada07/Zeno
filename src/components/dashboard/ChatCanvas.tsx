@@ -8,10 +8,7 @@ import {
   Copy,
   CheckCircle2,
   ExternalLink,
-  MapPin,
-  AlertTriangle,
-  FileText,
-  BarChart2,
+  Loader2,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { AgentTopologyVisualizer } from './AgentTopologyVisualizer';
@@ -22,14 +19,15 @@ export const ChatCanvas: React.FC = () => {
   const [inputText, setInputText] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [spatialBadge, setSpatialBadge] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const activeDomain: AgentDomain =
-    messages[messages.length - 1]?.intentResult?.domain || 'ACADEMIC';
+    messages[messages.length - 1]?.intentResult?.domain || 'ACADEMIC_GIS';
 
   useEffect(() => {
     const handleGisEvent = (e: any) => {
       if (e.detail) {
-        setSpatialBadge('[AGENT: SPATIAL_GIS_ENGINE]');
+        setSpatialBadge('[AGENT: ACADEMIC_GIS]');
         setTimeout(() => setSpatialBadge(null), 8000);
       }
     };
@@ -37,15 +35,25 @@ export const ChatCanvas: React.FC = () => {
     return () => window.removeEventListener('zeno:spatial_gis_trigger', handleGisEvent);
   }, []);
 
+  const dispatchPrompt = (promptText: string) => {
+    if (isProcessing || !promptText.trim()) return;
+
+    setIsProcessing(true);
+    sendMessage(promptText.trim());
+    setInputText('');
+
+    setTimeout(() => {
+      setIsProcessing(false);
+    }, 500);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim()) return;
-    sendMessage(inputText.trim());
-    setInputText('');
+    dispatchPrompt(inputText);
   };
 
   const handleChipClick = (promptText: string) => {
-    sendMessage(promptText);
+    dispatchPrompt(promptText);
   };
 
   const handleCopyText = (id: string, text: string) => {
@@ -213,13 +221,14 @@ export const ChatCanvas: React.FC = () => {
         })}
       </div>
 
-      {/* Interactive Quick Action Chips (Step 7 UX Polish) */}
+      {/* Interactive Quick Action Chips */}
       <div className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none">
         {quickActionChips.map((chip, idx) => (
           <button
             key={idx}
+            disabled={isProcessing}
             onClick={() => handleChipClick(chip.prompt)}
-            className="px-2.5 py-1 rounded-xl bg-slate-950/80 hover:bg-cyan-500/20 border border-slate-800 hover:border-cyan-500/40 text-[11px] font-mono text-slate-300 hover:text-cyan-300 transition-all shrink-0 flex items-center space-x-1.5"
+            className="px-2.5 py-1 rounded-xl bg-slate-950/80 hover:bg-cyan-500/20 border border-slate-800 hover:border-cyan-500/40 text-[11px] font-mono text-slate-300 hover:text-cyan-300 transition-all shrink-0 flex items-center space-x-1.5 disabled:opacity-40"
           >
             <span>{chip.icon}</span>
             <span>{chip.label}</span>
@@ -231,18 +240,19 @@ export const ChatCanvas: React.FC = () => {
       <form onSubmit={handleSubmit} className="flex items-center space-x-2 pt-2 border-t border-slate-800/80">
         <input
           type="text"
+          disabled={isProcessing}
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           placeholder="Ask Zeno about Attendance, Next Lab, Bunking Risk, Placement Drives, or Grievances..."
-          className="flex-1 bg-slate-950 dark:bg-slate-950 html-light:bg-slate-100 border border-slate-800 dark:border-slate-800 html-light:border-slate-300 rounded-xl p-3 text-xs text-slate-100 dark:text-slate-100 html-light:text-slate-900 outline-none focus:border-cyan-500 font-mono"
+          className="flex-1 bg-slate-950 dark:bg-slate-950 html-light:bg-slate-100 border border-slate-800 dark:border-slate-800 html-light:border-slate-300 rounded-xl p-3 text-xs text-slate-100 dark:text-slate-100 html-light:text-slate-900 outline-none focus:border-cyan-500 font-mono disabled:opacity-50"
         />
         <button
           type="submit"
-          disabled={!inputText.trim()}
+          disabled={isProcessing || !inputText.trim()}
           className="px-4 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold rounded-xl shadow-[0_0_15px_rgba(0,240,255,0.3)] transition-all flex items-center space-x-1.5 disabled:opacity-40"
         >
-          <Send className="w-4 h-4" />
-          <span className="hidden sm:inline">Send</span>
+          {isProcessing ? <Loader2 className="w-4 h-4 animate-spin text-slate-950" /> : <Send className="w-4 h-4" />}
+          <span className="hidden sm:inline">{isProcessing ? 'Routing...' : 'Send'}</span>
         </button>
       </form>
     </div>

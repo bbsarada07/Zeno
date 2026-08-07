@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cpu, Activity, Zap, CheckCircle2, Radio } from 'lucide-react';
+import { Cpu, Radio } from 'lucide-react';
 import type { AgentDomain } from '../../types';
 
 interface AgentTopologyProps {
@@ -13,14 +13,13 @@ const SUB_AGENTS: Array<{
   model: string;
   accent: string;
 }> = [
-  { id: 'agent-academic', domain: 'ACADEMIC', label: 'ACADEMIC_DS', model: 'Gemini-1.5-Pro', accent: '#00F0FF' },
-  { id: 'agent-placement', domain: 'PLACEMENT', label: 'PLACEMENT_ENGINE', model: 'Claude-3.5-Sonnet', accent: '#10B981' },
-  { id: 'agent-events', domain: 'EVENTS', label: 'EVENTS_ROUTER', model: 'GPT-4o-Mini', accent: '#F59E0B' },
-  { id: 'agent-comm', domain: 'COMMUNICATION', label: 'COMM_STUDIO', model: 'DeepSeek-V3', accent: '#8B5CF6' },
-  { id: 'agent-grievance', domain: 'STUDENT_SERVICE', label: 'GRIEVANCE_ROUTER', model: 'Mistral-Large', accent: '#F43F5E' },
+  { id: 'agent-academic-gis', domain: 'ACADEMIC_GIS', label: 'ACADEMIC_GIS', model: 'Gemini-1.5-Pro', accent: '#00F0FF' },
+  { id: 'agent-placement-pipe', domain: 'PLACEMENT_PIPELINE', label: 'PLACEMENT_PIPELINE', model: 'Claude-3.5-Sonnet', accent: '#10B981' },
+  { id: 'agent-events-router', domain: 'EVENTS_ROUTER', label: 'EVENTS_ROUTER', model: 'GPT-4o-Mini', accent: '#F59E0B' },
+  { id: 'agent-gov-router', domain: 'GOVERNANCE_ROUTER', label: 'GOVERNANCE_ROUTER', model: 'Mistral-Large', accent: '#F43F5E' },
 ];
 
-export const AgentTopologyVisualizer: React.FC<AgentTopologyProps> = ({ activeDomain = 'ACADEMIC' }) => {
+export const AgentTopologyVisualizer: React.FC<AgentTopologyProps> = ({ activeDomain = 'ACADEMIC_GIS' }) => {
   return (
     <div className="p-3.5 rounded-2xl bg-slate-950/80 dark:bg-slate-950/80 html-light:bg-slate-100 border border-slate-800 dark:border-slate-800 html-light:border-slate-300 space-y-3 font-mono select-none">
       <div className="flex items-center justify-between border-b border-slate-800/80 pb-2 text-xs">
@@ -35,13 +34,20 @@ export const AgentTopologyVisualizer: React.FC<AgentTopologyProps> = ({ activeDo
       </div>
 
       {/* Sub-Agent Nodes Grid */}
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         {SUB_AGENTS.map((agent) => {
-          const isActive = activeDomain === agent.domain;
+          const isActive =
+            activeDomain === agent.domain ||
+            (activeDomain === 'ACADEMIC' && agent.domain === 'ACADEMIC_GIS') ||
+            (activeDomain === 'PLACEMENT' && agent.domain === 'PLACEMENT_PIPELINE') ||
+            (activeDomain === 'EVENTS' && agent.domain === 'EVENTS_ROUTER') ||
+            (activeDomain === 'STUDENT_SERVICE' && agent.domain === 'GOVERNANCE_ROUTER') ||
+            (activeDomain === 'COMMUNICATION' && agent.domain === 'GOVERNANCE_ROUTER');
+
           return (
             <div
               key={agent.id}
-              className={`p-2 rounded-xl border flex flex-col justify-between transition-all duration-300 relative overflow-hidden ${
+              className={`p-2.5 rounded-xl border flex flex-col justify-between transition-all duration-300 relative overflow-hidden ${
                 isActive
                   ? 'bg-slate-900 border-cyan-400 shadow-[0_0_15px_rgba(0,240,255,0.3)] scale-[1.03]'
                   : 'bg-slate-950/60 border-slate-850 opacity-60'
@@ -50,17 +56,17 @@ export const AgentTopologyVisualizer: React.FC<AgentTopologyProps> = ({ activeDo
             >
               {isActive && (
                 <div
-                  className="absolute top-0 right-0 w-2 h-2 rounded-full animate-ping"
+                  className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full animate-ping"
                   style={{ backgroundColor: agent.accent }}
                 />
               )}
 
-              <div className="text-[10px] font-extrabold truncate text-white" style={{ color: isActive ? agent.accent : undefined }}>
-                {agent.label}
+              <div className="text-[11px] font-extrabold truncate text-white" style={{ color: isActive ? agent.accent : undefined }}>
+                [AGENT: {agent.label}]
               </div>
-              <div className="text-[9px] text-slate-400 truncate">{agent.model}</div>
+              <div className="text-[10px] text-slate-400 truncate mt-0.5">{agent.model}</div>
 
-              <div className="flex items-center justify-between pt-1 border-t border-slate-800/60 text-[9px]">
+              <div className="flex items-center justify-between pt-1.5 border-t border-slate-800/60 text-[9px] mt-2">
                 <span className="text-slate-500">STATE:</span>
                 <span className="font-bold" style={{ color: isActive ? agent.accent : '#64748B' }}>
                   {isActive ? 'ACTIVE' : 'IDLE'}
