@@ -39,6 +39,7 @@ interface AppContextType {
   setActiveRole: (role: UserRole) => void;
   loginWithOtp: (tenantCode: string, role: UserRole, mobile: string, otp: string) => boolean;
   logoutSession: () => void;
+  isLoggingOut: boolean;
   isAuthModalOpen: boolean;
   setIsAuthModalOpen: (open: boolean) => void;
 
@@ -121,26 +122,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Auth Vault & Session State
   const [selectedTenant, setSelectedTenant] = useState<InstitutionalTenant>(INSTITUTIONAL_TENANTS[0]);
   const [activeRole, setActiveRole] = useState<UserRole>('student');
+  const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
+
   const [authSession, setAuthSession] = useState<AuthVaultSession | null>(() => {
     try {
-      const saved = localStorage.getItem(AUTH_VAULT_STORAGE_KEY);
+      const saved = localStorage.getItem(AUTH_VAULT_STORAGE_KEY) || localStorage.getItem('zeno_user_session');
       if (saved) {
         return JSON.parse(saved);
       }
     } catch (e) {
       console.error('Failed to parse Zeno_Auth_Vault session:', e);
     }
-    // Default to null so user lands directly on the Auth Gateway Page
     return null;
   });
+
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(!authSession?.isAuthenticated);
 
   // Sync auth state to localStorage
   useEffect(() => {
     if (authSession) {
       localStorage.setItem(AUTH_VAULT_STORAGE_KEY, JSON.stringify(authSession));
+      localStorage.setItem('zeno_user_session', JSON.stringify(authSession));
     } else {
       localStorage.removeItem(AUTH_VAULT_STORAGE_KEY);
+      localStorage.removeItem('zeno_user_session');
+      localStorage.removeItem('zeno_token');
     }
   }, [authSession]);
 
@@ -171,9 +177,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const logoutSession = () => {
-    setAuthSession(null);
-    localStorage.removeItem(AUTH_VAULT_STORAGE_KEY);
-    setIsAuthModalOpen(true);
+    setIsLoggingOut(true);
+    setTimeout(() => {
+      setAuthSession(null);
+      localStorage.removeItem(AUTH_VAULT_STORAGE_KEY);
+      localStorage.removeItem('zeno_token');
+      localStorage.removeItem('zeno_user_session');
+      setIsAuthModalOpen(true);
+      setActiveTab('dashboard');
+      setIsLoggingOut(false);
+    }, 600);
   };
 
   // Navigation Active Tab
@@ -232,10 +245,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       txHash: `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`,
       blockHeight: 18492041 + Math.floor(Math.random() * 500),
       timestamp: new Date().toISOString(),
-      tenantCode: selectedTenant.code,
-      studentRollNumber: student.rollNumber,
-      targetRecipient: hitlPayload.targetRecipient,
-      payloadSummary: hitlPayload.title,
+      tenantCode: selectedTenant?.code || 'VCE-HDO-500031',
+      studentRollNumber: student?.rollNumber || '2451-22-733-001',
+      targetRecipient: hitlPayload?.targetRecipient || 'Dr. Marcus Vance (HOD CSE)',
+      payloadSummary: hitlPayload?.title || 'Attendance Shortage Waiver Condensation',
       verifiedBySignature: `ed25519:vce-gov-cert-key-${Math.floor(1000 + Math.random() * 9000)}`,
     };
 
@@ -259,7 +272,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     {
       id: 'm-welcome',
       sender: 'agent',
-      text: `Welcome back, **${student.name}** (${student.rollNumber}).
+      text: `Welcome back, **${MOCK_STUDENT.name}** (${MOCK_STUDENT.rollNumber}).
 
 I am **Zeno**, your Autonomous Smart Campus Governance & GIS Intelligence Platform. 
 
@@ -367,6 +380,7 @@ I have generated the formal petition payload. Click below to review and approve 
         setActiveRole,
         loginWithOtp,
         logoutSession,
+        isLoggingOut,
         isAuthModalOpen,
         setIsAuthModalOpen,
         activeTab,

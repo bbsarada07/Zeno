@@ -73,8 +73,8 @@ export const TopBar: React.FC = () => {
               className="text-[11px] text-slate-300 hover:text-white flex items-center space-x-1.5 font-medium transition-all group pt-0.5"
             >
               <Building2 className="w-3 h-3 text-cyan-400" />
-              <span className="truncate max-w-[200px]">{selectedTenant.name}</span>
-              <span className="font-mono text-cyan-400 font-bold">({selectedTenant.code})</span>
+              <span className="truncate max-w-[200px]">{selectedTenant?.name || 'Vasavi College of Engineering (VCE-HYD)'}</span>
+              <span className="font-mono text-cyan-400 font-bold">({selectedTenant?.code || 'VCE-HDO-500031'})</span>
               <ChevronDown className="w-3 h-3 text-slate-400 group-hover:text-white transition-transform duration-200" />
             </button>
 
@@ -85,7 +85,7 @@ export const TopBar: React.FC = () => {
                   Switch Institutional Tenant
                 </div>
                 {INSTITUTIONAL_TENANTS.map((t) => {
-                  const isSelected = t.id === selectedTenant.id;
+                  const isSelected = t.id === selectedTenant?.id;
                   return (
                     <div
                       key={t.id}
@@ -183,9 +183,9 @@ export const TopBar: React.FC = () => {
               <User className="w-3.5 h-3.5" />
             </div>
             <div className="hidden sm:block text-left">
-              <div className="text-xs font-bold leading-tight text-white">{student.name}</div>
+              <div className="text-xs font-bold leading-tight text-white">{student?.name || 'Alex Rivera'}</div>
               <div className="text-[10px] text-slate-400 font-mono leading-none capitalize">
-                {activeRole} • {student.rollNumber}
+                {activeRole} • {student?.rollNumber || '2451-22-733-001'}
               </div>
             </div>
           </div>

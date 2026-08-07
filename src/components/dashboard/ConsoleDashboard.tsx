@@ -72,9 +72,9 @@ export const ConsoleDashboard: React.FC = () => {
                 </div>
 
                 <div className="space-y-1">
-                  <div className="font-bold text-base text-white">{student.name}</div>
+                  <div className="font-bold text-base text-white">{student?.name || 'Alex Rivera'}</div>
                   <div className="text-xs text-slate-400 font-mono">
-                    {student.rollNumber} • {student.department}
+                    {student?.rollNumber || '2451-22-733-001'} • {student?.department || 'Computer Science & Engineering'}
                   </div>
                 </div>
 
@@ -83,7 +83,7 @@ export const ConsoleDashboard: React.FC = () => {
                   {/* Metric 1: CGPA */}
                   <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between">
                     <div className="text-[10px] text-slate-400 font-mono uppercase font-bold">CGPA</div>
-                    <div className="text-base font-extrabold font-mono text-cyan-400 py-1">{student.cgpa}</div>
+                    <div className="text-base font-extrabold font-mono text-cyan-400 py-1">{student?.cgpa ?? 8.84}</div>
                     <SparklineCanvas data={[8.2, 8.4, 8.5, 8.7, 8.84]} color={accentColor} height={24} width={70} />
                   </div>
 
@@ -91,7 +91,7 @@ export const ConsoleDashboard: React.FC = () => {
                   <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between">
                     <div className="text-[10px] text-slate-400 font-mono uppercase font-bold">Attendance</div>
                     <div className="text-base font-extrabold font-mono text-amber-400 py-1">
-                      {student.attendancePercentage}%
+                      {student?.attendancePercentage ?? 72.5}%
                     </div>
                     <SparklineCanvas data={[88, 84, 79, 75, 72.5]} color="#F59E0B" height={24} width={70} />
                   </div>
@@ -100,7 +100,7 @@ export const ConsoleDashboard: React.FC = () => {
                   <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between">
                     <div className="text-[10px] text-slate-400 font-mono uppercase font-bold">Placement</div>
                     <div className="text-base font-extrabold font-mono text-emerald-400 py-1">
-                      {student.overallPlacementScore}%
+                      {student?.overallPlacementScore ?? 88}%
                     </div>
                     <SparklineCanvas data={[70, 78, 85, 90, 94]} color="#10B981" height={24} width={70} />
                   </div>
