@@ -1,17 +1,28 @@
 import type { AgentDomain, IntentResult, EventCardData, EmailDraftData, GrievanceStepData } from '../types';
+import { CAMPUS_KNOWLEDGE_DICTIONARY } from '../services/aiRoutingService';
 
 export type AgentType = 'ACADEMIC_GIS' | 'PLACEMENT_PIPELINE' | 'EVENTS_ROUTER' | 'GOVERNANCE_ROUTER';
 
 export function classifyIntent(query: string): AgentType {
   const q = query.toLowerCase();
 
-  // Exact Quick Chip Match & Academic Keywords
+  // Exact Quick Chip Match & Academic/GIS Keywords
   if (
     q.includes('where is my next lab') ||
     q.includes('bunk') ||
     q.includes('section schedule') ||
     q.includes('lab') ||
     q.includes('where') ||
+    q.includes('canteen') ||
+    q.includes('food') ||
+    q.includes('cafeteria') ||
+    q.includes('library') ||
+    q.includes('sports') ||
+    q.includes('gym') ||
+    q.includes('principal') ||
+    q.includes('auditorium') ||
+    q.includes('health') ||
+    q.includes('medical') ||
     q.includes('class') ||
     q.includes('room') ||
     q.includes('schedule') ||
@@ -66,7 +77,112 @@ export function classifyUserIntent(prompt: string): IntentResult {
   }
 
   // -------------------------------------------------------------
-  // AGENT 1: ACADEMIC_GIS (Labs, Classrooms, Schedules, Bunk Calculator)
+  // 1. UNIVERSAL CAMPUS KNOWLEDGE BASE MATCHER (Canteen, Library, Sports, Principal, Auditorium, Health)
+  // -------------------------------------------------------------
+  if (q.includes('canteen') || q.includes('cafeteria') || q.includes('food') || q.includes('lunch') || q.includes('eat') || q.includes('coffee') || q.includes('sac')) {
+    const place = CAMPUS_KNOWLEDGE_DICTIONARY.canteen;
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('zeno:spatial_gis_trigger', {
+          detail: { building: place.building, floor: place.floor, room_number: place.room, lab_code: place.code, lab_name: place.name },
+        })
+      );
+    }
+    return {
+      domain: 'ACADEMIC_GIS',
+      agentName: 'ACADEMIC_GIS',
+      confidence: 0.99,
+      summary: `📍 **Location Resolution:** ${place.name}\n• **Building:** ${place.building} - ${place.floor}\n• **Proximity:** ${place.proximity}\n• **Operating Hours:** ${place.hours}\n👉 *Action: Spatial map coordinates sent to Campus GIS View.*`,
+    };
+  }
+
+  if (q.includes('library') || q.includes('book') || q.includes('read') || q.includes('journal')) {
+    const place = CAMPUS_KNOWLEDGE_DICTIONARY.library;
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('zeno:spatial_gis_trigger', {
+          detail: { building: place.building, floor: place.floor, room_number: place.room, lab_code: place.code, lab_name: place.name },
+        })
+      );
+    }
+    return {
+      domain: 'ACADEMIC_GIS',
+      agentName: 'ACADEMIC_GIS',
+      confidence: 0.99,
+      summary: `📍 **Location Resolution:** ${place.name}\n• **Building:** ${place.building} - ${place.floor}\n• **Proximity:** ${place.proximity}\n• **Operating Hours:** ${place.hours}\n👉 *Action: Spatial map coordinates sent to Campus GIS View.*`,
+    };
+  }
+
+  if (q.includes('sport') || q.includes('gym') || q.includes('badminton') || q.includes('stadium')) {
+    const place = CAMPUS_KNOWLEDGE_DICTIONARY.sports;
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('zeno:spatial_gis_trigger', {
+          detail: { building: place.building, floor: place.floor, room_number: place.room, lab_code: place.code, lab_name: place.name },
+        })
+      );
+    }
+    return {
+      domain: 'ACADEMIC_GIS',
+      agentName: 'ACADEMIC_GIS',
+      confidence: 0.99,
+      summary: `📍 **Location Resolution:** ${place.name}\n• **Building:** ${place.building} - ${place.floor}\n• **Proximity:** ${place.proximity}\n• **Operating Hours:** ${place.hours}\n👉 *Action: Spatial map coordinates sent to Campus GIS View.*`,
+    };
+  }
+
+  if (q.includes('principal') || q.includes('admin office') || q.includes('dean office') || q.includes('registrar')) {
+    const place = CAMPUS_KNOWLEDGE_DICTIONARY.principal;
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('zeno:spatial_gis_trigger', {
+          detail: { building: place.building, floor: place.floor, room_number: place.room, lab_code: place.code, lab_name: place.name },
+        })
+      );
+    }
+    return {
+      domain: 'ACADEMIC_GIS',
+      agentName: 'ACADEMIC_GIS',
+      confidence: 0.99,
+      summary: `📍 **Location Resolution:** ${place.name}\n• **Building:** ${place.building} - ${place.floor}\n• **Proximity:** ${place.proximity}\n• **Operating Hours:** ${place.hours}\n👉 *Action: Spatial map coordinates sent to Campus GIS View.*`,
+    };
+  }
+
+  if (q.includes('auditorium') || q.includes('seminar hall') || q.includes('convention')) {
+    const place = CAMPUS_KNOWLEDGE_DICTIONARY.auditorium;
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('zeno:spatial_gis_trigger', {
+          detail: { building: place.building, floor: place.floor, room_number: place.room, lab_code: place.code, lab_name: place.name },
+        })
+      );
+    }
+    return {
+      domain: 'ACADEMIC_GIS',
+      agentName: 'ACADEMIC_GIS',
+      confidence: 0.99,
+      summary: `📍 **Location Resolution:** ${place.name}\n• **Building:** ${place.building} - ${place.floor}\n• **Proximity:** ${place.proximity}\n• **Operating Hours:** ${place.hours}\n👉 *Action: Spatial map coordinates sent to Campus GIS View.*`,
+    };
+  }
+
+  if (q.includes('health') || q.includes('medical') || q.includes('doctor') || q.includes('clinic') || q.includes('fever')) {
+    const place = CAMPUS_KNOWLEDGE_DICTIONARY.health;
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('zeno:spatial_gis_trigger', {
+          detail: { building: place.building, floor: place.floor, room_number: place.room, lab_code: place.code, lab_name: place.name },
+        })
+      );
+    }
+    return {
+      domain: 'ACADEMIC_GIS',
+      agentName: 'ACADEMIC_GIS',
+      confidence: 0.99,
+      summary: `📍 **Location Resolution:** ${place.name}\n• **Building:** ${place.building} - ${place.floor}\n• **Proximity:** ${place.proximity}\n• **Operating Hours:** ${place.hours}\n👉 *Action: Spatial map coordinates sent to Campus GIS View.*`,
+    };
+  }
+
+  // -------------------------------------------------------------
+  // 2. AGENT 1: ACADEMIC_GIS (Labs, Classrooms, Schedules, Bunk Calculator)
   // -------------------------------------------------------------
   if (agentType === 'ACADEMIC_GIS') {
     // Quick Chip 1: "Where is my next lab?"
@@ -91,7 +207,7 @@ export function classifyUserIntent(prompt: string): IntentResult {
         domain: 'ACADEMIC_GIS',
         agentName: 'ACADEMIC_GIS',
         confidence: 0.99,
-        summary: `📍 **Spatial Indoor GIS Routing & Next Lab Schedule**\n\n- **Lab Name:** **Operating Systems Laboratory**\n- **Room Number:** **Room CL-12**\n- **Building & Floor:** **Admin Block, Floor 2**\n- **Timing Slot:** **10:00 AM – 12:00 PM**\n- **Faculty In-Charge:** Dr. K. Srinivas (Associate Professor)\n\n*The interactive spatial indoor campus map has automatically panned and zoomed to highlight your route to **Room CL-12**.*`,
+        summary: `📍 **Location Resolution:** Operating Systems Laboratory\n• **Building:** Admin Block - Floor 2 (Room CL-12)\n• **Proximity:** 45m from Elevator Bank\n• **Operating Hours:** 10:00 AM – 12:00 PM Slot\n👉 *Action: Spatial map coordinates sent to Campus GIS View.*`,
       };
     }
 
@@ -105,7 +221,7 @@ export function classifyUserIntent(prompt: string): IntentResult {
         domain: 'ACADEMIC_GIS',
         agentName: 'ACADEMIC_GIS',
         confidence: 0.98,
-        summary: `⚠️ **Predictive Bunk Risk Alert & Attendance Impact**\n\n- **Student:** ${userName} (\`${userRoll}\`)\n- **Current Attendance:** **72.5%** (${attended}/${total} classes attended)\n- **Projected Attendance if Missed:** **${newAttendance}%** (${attended}/${total + 1} classes)\n- **Risk Status:** 🛑 **CRITICAL DANGER**\n\n**Warning Assessment:** Skipping this class drops your overall attendance below 72.0% (${newAttendance}%), which violates the mandatory 75.0% Handbook §7.2 policy! Medical waiver condensation will be required.`,
+        summary: `⚠️ **Attendance Impact Analysis**\n• **Current Attendance:** 72.5%\n• **Projected Attendance if Skipped:** ${newAttendance}%\n• **Status:** 🔴 CRITICAL RISK (Below 75% Mandatory Threshold)\n\n*Skipping this class drops overall attendance to ${newAttendance}%, which violates Vasavi College Handbook §7.2 policy!*`,
       };
     }
 
@@ -124,12 +240,12 @@ export function classifyUserIntent(prompt: string): IntentResult {
       domain: 'ACADEMIC_GIS',
       agentName: 'ACADEMIC_GIS',
       confidence: 0.94,
-      summary: `📚 **Academic GIS & Timetable Intelligence**\n\n- **Student:** ${userName} (\`${userRoll}\`)\n- **Department:** ${userBranch}\n- **Current Class Slot:** Operating Systems Lab (10:00 AM – 12:00 PM, Room CL-12)\n- **Attendance:** **${userAttendance}** (Shortfall: -2.5% below 75% threshold)`,
+      summary: `📍 **Location Resolution:** Academic Classrooms & Labs\n• **Building:** Admin Block Floor 2 (Room CL-12)\n• **Proximity:** 45m from Elevator Bank\n• **Operating Hours:** 09:00 AM – 17:00 PM\n👉 *Action: Spatial map coordinates sent to Campus GIS View.*`,
     };
   }
 
   // -------------------------------------------------------------
-  // AGENT 2: PLACEMENT_PIPELINE
+  // 3. AGENT 2: PLACEMENT_PIPELINE
   // -------------------------------------------------------------
   if (agentType === 'PLACEMENT_PIPELINE') {
     // Quick Chip 4: "Check academic standing & attendance"
@@ -151,7 +267,7 @@ export function classifyUserIntent(prompt: string): IntentResult {
   }
 
   // -------------------------------------------------------------
-  // AGENT 3: EVENTS_ROUTER
+  // 4. AGENT 3: EVENTS_ROUTER
   // -------------------------------------------------------------
   if (agentType === 'EVENTS_ROUTER') {
     const eventCard: EventCardData = {
@@ -175,7 +291,7 @@ export function classifyUserIntent(prompt: string): IntentResult {
   }
 
   // -------------------------------------------------------------
-  // AGENT 4: GOVERNANCE_ROUTER
+  // 5. AGENT 4: GOVERNANCE_ROUTER & GENERAL QUERY RESOLUTION
   // -------------------------------------------------------------
   if (q.includes('email') || q.includes('draft') || q.includes('letter') || q.includes('leave') || q.includes('permission')) {
     const emailDraft: EmailDraftData = {
@@ -221,7 +337,7 @@ export function classifyUserIntent(prompt: string): IntentResult {
     domain: 'GOVERNANCE_ROUTER',
     agentName: 'GOVERNANCE_ROUTER',
     confidence: 0.92,
-    summary: `🏛️ **Governance Router Administrative Resolution Steps**\n\nI have parsed your administrative query for **${userName}** (\`${userRoll}\`). Below are the resolution steps:`,
+    summary: `🏛️ **Zeno Campus Intelligence Resolution**\n\nHello **${userName}** (\`${userRoll}\`, ${userBranch}).\n\nI have evaluated your request against Vasavi College of Engineering campus telemetry:\n- 📍 **Spatial GIS Locations:** Canteen (SAC Ground Floor), Central Library (Blocks C/D), Sports Complex (North Campus), Administrative Office (A-101)\n- ⚠️ **Predictive Attendance Bunk Calculator:** Current: ${userAttendance} (New: 70.8% - CRITICAL RISK)\n- 📊 **Academic Standing:** CGPA ${userCgpa}, 94% Placement Readiness`,
     grievanceSteps,
   };
 }
