@@ -1,0 +1,8 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/zeno-core-backend/venv/Scripts/python.exe",
+  "python.interpreterPath": "${workspaceFolder}/zeno-core-backend/venv/Scripts/python.exe",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/zeno-core-backend",
+    "${workspaceFolder}/zeno-core-backend/venv/Lib/site-packages"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "venvPath": "zeno-core-backend",
+  "venv": "venv",
+  "extraPaths": [
+    "zeno-core-backend"
+  ]
+}
