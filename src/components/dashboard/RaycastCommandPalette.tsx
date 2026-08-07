@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapPin, GraduationCap, FileCheck, ShieldAlert, FileText, Command, ArrowRight, UserCheck, Shield, User } from 'lucide-react';
+import { Search, MapPin, GraduationCap, FileCheck, ShieldAlert, FileText, Command, ArrowRight, UserCheck, Shield, User, RotateCcw } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 interface CommandItem {
@@ -20,6 +20,7 @@ export const RaycastCommandPalette: React.FC = () => {
     setIsHitlDrawerOpen,
     setIsReceiptModalOpen,
     setActiveRole,
+    resetDemoState,
   } = useApp();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -41,6 +42,17 @@ export const RaycastCommandPalette: React.FC = () => {
   }, []);
 
   const commands: CommandItem[] = [
+    {
+      id: 'cmd-reset-demo',
+      title: 'Reset Demo State (Re-seed Petitions Queue)',
+      category: 'System Governance',
+      icon: <RotateCcw className="w-4 h-4 text-cyan-400" />,
+      action: () => {
+        resetDemoState();
+        setIsOpen(false);
+      },
+      shortcut: '⌘R',
+    },
     {
       id: 'cmd-role-student',
       title: 'Switch Role ➔ Student Governance Node',
@@ -148,11 +160,11 @@ export const RaycastCommandPalette: React.FC = () => {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Type a command or switch role (e.g. HOD, Faculty, GIS, Audit)..."
+            placeholder="Type a command or reset demo state (e.g. Reset, HOD, Faculty, GIS)..."
             autoFocus
             className="w-full bg-transparent border-none text-sm text-slate-100 placeholder-slate-500 outline-none font-mono"
           />
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900 border border-slate-800 text-slate-400">
+          <span className="px-2 py-0.5 rounded text-xs font-mono bg-slate-900 border border-slate-800 text-slate-400">
             ESC
           </span>
         </div>
@@ -164,23 +176,23 @@ export const RaycastCommandPalette: React.FC = () => {
               <div
                 key={cmd.id}
                 onClick={cmd.action}
-                className="p-3 rounded-xl border border-transparent hover:border-slate-800 hover:bg-slate-900/80 cursor-pointer transition-all flex items-center justify-between group"
+                className="p-3.5 rounded-xl border border-transparent hover:border-slate-800 hover:bg-slate-900/80 cursor-pointer transition-all flex items-center justify-between group"
               >
                 <div className="flex items-center space-x-3">
                   <div className="p-2 rounded-lg bg-slate-950 border border-slate-800 group-hover:border-slate-700">
                     {cmd.icon}
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-slate-200 group-hover:text-white">
+                    <div className="text-sm font-bold text-slate-200 group-hover:text-white">
                       {cmd.title}
                     </div>
-                    <div className="text-[10px] font-mono text-slate-500">{cmd.category}</div>
+                    <div className="text-xs font-mono text-slate-500">{cmd.category}</div>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-2 text-slate-500 group-hover:text-cyan-400">
-                  <span className="text-[10px] font-mono">{cmd.shortcut}</span>
-                  <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span className="text-xs font-mono">{cmd.shortcut}</span>
+                  <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               </div>
             ))
@@ -192,9 +204,9 @@ export const RaycastCommandPalette: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-slate-800/80 bg-slate-950 text-[10px] font-mono text-slate-500 flex items-center justify-between px-4">
+        <div className="p-3 border-t border-slate-800/80 bg-slate-950 text-xs font-mono text-slate-500 flex items-center justify-between px-4">
           <div className="flex items-center space-x-2">
-            <Command className="w-3 h-3 text-cyan-400" />
+            <Command className="w-3.5 h-3.5 text-cyan-400" />
             <span>Zeno Raycast Command Engine</span>
           </div>
           <div>Press ESC to exit</div>
