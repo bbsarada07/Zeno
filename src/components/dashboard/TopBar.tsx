@@ -8,10 +8,15 @@ import {
   Bell,
   CheckCircle2,
   Lock,
-  Zap,
   Building2,
   ToggleLeft,
   ToggleRight,
+  Menu,
+  X,
+  LayoutDashboard,
+  MapPin,
+  GraduationCap,
+  FileText,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { INSTITUTIONAL_TENANTS } from '../../data/mockData';
@@ -37,6 +42,7 @@ export const TopBar: React.FC = () => {
 
   const [isTenantDropdownOpen, setIsTenantDropdownOpen] = useState(false);
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const rolesList: { role: UserRole; label: string; badge: string }[] = [
     { role: 'student', label: 'Student Governance Node', badge: 'CSM-SEC-A' },
@@ -44,10 +50,25 @@ export const TopBar: React.FC = () => {
     { role: 'hod', label: 'HOD Executive Admin', badge: 'DEPT-HEAD' },
   ];
 
+  const navItems: { id: NavigationTab; label: string; icon: React.ReactNode }[] = [
+    { id: 'dashboard', label: 'Executive Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { id: 'gis', label: 'Campus GIS Map', icon: <MapPin className="w-4 h-4" /> },
+    { id: 'placement', label: 'Placement AI', icon: <GraduationCap className="w-4 h-4" /> },
+    { id: 'waivers', label: 'Waiver Petitions', icon: <FileText className="w-4 h-4" /> },
+  ];
+
   return (
-    <header className="h-16 border-b border-slate-800/80 bg-[#090D14]/80 dark:bg-[#090D14]/80 html-light:bg-white/90 backdrop-blur-2xl px-4 sm:px-6 flex items-center justify-between relative z-30 select-none text-slate-100 dark:text-slate-100 html-light:text-slate-900 transition-colors duration-300">
+    <header className="h-16 border-b border-slate-800/80 bg-[#090D14]/90 dark:bg-[#090D14]/90 html-light:bg-white/90 backdrop-blur-2xl px-4 sm:px-6 flex items-center justify-between relative z-30 select-none text-slate-100 dark:text-slate-100 html-light:text-slate-900 transition-colors duration-300">
       {/* Left: Platform Logo & Multi-Tenant Selector */}
-      <div className="flex items-center space-x-4 sm:space-x-6">
+      <div className="flex items-center space-x-3 sm:space-x-6">
+        {/* Mobile Hamburger Button */}
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="md:hidden p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white"
+        >
+          {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+
         <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
           <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shadow-[0_0_15px_rgba(0,240,255,0.2)]">
             <Shield className="w-5 h-5" />
@@ -59,7 +80,7 @@ export const TopBar: React.FC = () => {
                 v2.4
               </span>
             </div>
-            <div className="text-xs font-mono text-slate-400 hidden sm:block">
+            <div className="text-[11px] font-mono text-slate-400 hidden sm:block">
               Autonomous Smart Campus Governance
             </div>
           </div>
@@ -71,7 +92,7 @@ export const TopBar: React.FC = () => {
         </div>
 
         {/* Locked Tenant Selector Dropdown (Requires Demo Mode to edit) */}
-        <div className="relative">
+        <div className="relative hidden sm:block">
           <button
             disabled={!isDemoMode}
             onClick={() => isDemoMode && setIsTenantDropdownOpen(!isTenantDropdownOpen)}
@@ -115,40 +136,34 @@ export const TopBar: React.FC = () => {
         </div>
       </div>
 
-      {/* Middle Navigation Tabs */}
+      {/* Middle Navigation Tabs (Desktop / Laptop >= 768px) */}
       <nav className="hidden md:flex items-center space-x-1.5 bg-slate-950/60 dark:bg-slate-950/60 html-light:bg-slate-100/90 border border-slate-800/80 dark:border-slate-800/80 html-light:border-slate-300 p-1 rounded-2xl">
-        {(
-          [
-            { id: 'dashboard', label: 'Executive Dashboard' },
-            { id: 'gis', label: 'Campus GIS Map' },
-            { id: 'placement', label: 'Placement AI' },
-            { id: 'waivers', label: 'Waiver Petitions' },
-          ] as { id: NavigationTab; label: string }[]
-        ).map((tab) => {
+        {navItems.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center space-x-1.5 ${
                 isActive
                   ? 'bg-cyan-500 text-slate-950 shadow-[0_0_15px_rgba(0,240,255,0.4)]'
                   : 'text-slate-400 dark:text-slate-400 html-light:text-slate-600 hover:text-slate-100 dark:hover:text-white html-light:hover:text-slate-900'
               }`}
             >
-              {tab.label}
+              {tab.icon}
+              <span>{tab.label}</span>
             </button>
           );
         })}
       </nav>
 
       {/* Right Controls: Demo Mode Toggle, Role Pill, Theme Toggle, Notification & Logout */}
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-2 sm:space-x-3">
         {/* Demo Mode Toggle Switch */}
         <button
           onClick={toggleDemoMode}
           title={isDemoMode ? 'Demo Mode Active: Dropdowns Unlocked' : 'Demo Mode Disabled: Role/Tenant Session Locked'}
-          className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
+          className={`px-2.5 py-1.5 rounded-xl border text-xs font-mono font-bold flex items-center space-x-1.5 transition-all ${
             isDemoMode
               ? 'bg-cyan-500/10 border-cyan-500/40 text-cyan-400 shadow-[0_0_12px_rgba(0,240,255,0.2)]'
               : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
@@ -164,7 +179,7 @@ export const TopBar: React.FC = () => {
             disabled={!isDemoMode}
             onClick={() => isDemoMode && setIsRoleDropdownOpen(!isRoleDropdownOpen)}
             title={!isDemoMode ? 'Session Locked: Enable Demo Mode to switch role' : 'Switch Active Role'}
-            className={`px-3 py-1.5 rounded-xl border transition-all flex items-center space-x-2 text-xs sm:text-sm font-bold ${
+            className={`px-2.5 py-1.5 rounded-xl border transition-all flex items-center space-x-1.5 text-xs sm:text-sm font-bold ${
               !isDemoMode
                 ? 'bg-slate-950/40 opacity-75 border-slate-800 cursor-not-allowed text-slate-400'
                 : 'bg-slate-900/80 hover:border-amber-500/50 text-white cursor-pointer'
@@ -206,7 +221,7 @@ export const TopBar: React.FC = () => {
         <button
           onClick={toggleTheme}
           title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-          className="w-10 h-10 rounded-xl bg-slate-950/60 dark:bg-slate-950/60 html-light:bg-slate-200 border border-slate-800 dark:border-slate-800 html-light:border-slate-300 hover:border-cyan-500/50 transition-all flex items-center justify-center text-slate-200 dark:text-slate-200 html-light:text-slate-800"
+          className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-950/60 dark:bg-slate-950/60 html-light:bg-slate-200 border border-slate-800 dark:border-slate-800 html-light:border-slate-300 hover:border-cyan-500/50 transition-all flex items-center justify-center text-slate-200 dark:text-slate-200 html-light:text-slate-800"
         >
           {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-cyan-600" />}
         </button>
@@ -214,7 +229,7 @@ export const TopBar: React.FC = () => {
         {/* Notifications Icon */}
         <button
           onClick={() => setIsNotificationDrawerOpen(true)}
-          className="relative w-10 h-10 rounded-xl bg-slate-950/60 dark:bg-slate-950/60 html-light:bg-slate-200 border border-slate-800 dark:border-slate-800 html-light:border-slate-300 hover:border-cyan-500/50 transition-all flex items-center justify-center text-slate-300 dark:text-slate-300 html-light:text-slate-800"
+          className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-950/60 dark:bg-slate-950/60 html-light:bg-slate-200 border border-slate-800 dark:border-slate-800 html-light:border-slate-300 hover:border-cyan-500/50 transition-all flex items-center justify-center text-slate-300 dark:text-slate-300 html-light:text-slate-800"
         >
           <Bell className="w-4 h-4" />
           {unreadCount > 0 && (
@@ -228,12 +243,36 @@ export const TopBar: React.FC = () => {
         <button
           onClick={logoutSession}
           title="Safe Logout Session"
-          className="px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs sm:text-sm font-bold transition-all flex items-center space-x-1.5"
+          className="px-2.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs sm:text-sm font-bold transition-all flex items-center space-x-1.5"
         >
           <LogOut className="w-4 h-4" />
           <span className="hidden sm:inline">Logout</span>
         </button>
       </div>
+
+      {/* Mobile Animated Slide-Out Hamburger Navigation Menu (< 768px) */}
+      {isMobileMenuOpen && (
+        <div className="absolute top-16 left-0 right-0 bg-[#090D14]/95 border-b border-slate-800 p-4 space-y-2 md:hidden shadow-2xl z-50 font-sans">
+          <div className="text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Campus Navigation</div>
+          {navItems.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full p-3 rounded-xl text-sm font-bold flex items-center space-x-3 transition-all ${
+                activeTab === tab.id
+                  ? 'bg-cyan-500 text-slate-950 font-extrabold'
+                  : 'bg-slate-950/60 border border-slate-800 text-slate-300 hover:bg-slate-900'
+              }`}
+            >
+              {tab.icon}
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </header>
   );
 };

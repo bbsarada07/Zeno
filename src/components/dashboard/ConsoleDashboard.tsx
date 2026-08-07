@@ -11,6 +11,7 @@ import { RecruiterPerspectiveModal } from '../placement/RecruiterPerspectiveModa
 import { InterviewCoachModal } from '../placement/InterviewCoachModal';
 import { MultiTenantAuthModal } from '../landing/MultiTenantAuthModal';
 import { DashboardBackgroundCanvas } from './DashboardBackgroundCanvas';
+import { ParticleCanvas } from './ParticleCanvas';
 import { SparklineCanvas } from './SparklineCanvas';
 import { RaycastCommandPalette } from './RaycastCommandPalette';
 import { HodGovernanceInbox } from './HodGovernanceInbox';
@@ -31,9 +32,12 @@ export const ConsoleDashboard: React.FC = () => {
 
   return (
     <div
-      className="h-screen w-screen bg-[#05070A] dark:bg-[#05070A] html-light:bg-[#F1F5F9] text-slate-100 dark:text-slate-100 html-light:text-slate-900 flex flex-col overflow-hidden font-sans select-none relative transition-colors duration-300"
+      className="h-screen w-screen bg-[#05070A] dark:bg-[#05070A] html-light:bg-[#F1F5F9] text-slate-100 dark:text-slate-100 html-light:text-slate-900 flex flex-col overflow-x-hidden overflow-y-hidden font-sans select-none relative transition-colors duration-300 text-[15px] leading-relaxed"
       style={{ '--accent-color': accentColor } as React.CSSProperties}
     >
+      {/* 60 FPS Cyberpunk Particle Canvas Engine */}
+      <ParticleCanvas />
+
       {/* Deep Space Canvas Ambient Layer & Translucent Dot Grid Mesh */}
       <DashboardBackgroundCanvas />
 
@@ -66,8 +70,8 @@ export const ConsoleDashboard: React.FC = () => {
                   {/* Card 1: Student Governance Snapshot */}
                   <div className="zeno-glass-card p-6 space-y-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-300 dark:text-slate-300 html-light:text-slate-800 flex items-center space-x-2">
-                        <TrendingUp className="w-4 h-4 text-cyan-400" />
+                      <h3 className="font-extrabold text-base uppercase tracking-wider text-slate-300 dark:text-slate-300 html-light:text-slate-800 flex items-center space-x-2">
+                        <TrendingUp className="w-5 h-5 text-cyan-400" />
                         <span>Governance Telemetry Profile</span>
                       </h3>
                       <span
@@ -83,7 +87,7 @@ export const ConsoleDashboard: React.FC = () => {
                     </div>
 
                     <div className="space-y-1">
-                      <div className="font-extrabold text-lg text-slate-100 dark:text-white html-light:text-slate-900">{student?.name || 'Alex Rivera'}</div>
+                      <div className="font-extrabold text-xl text-slate-100 dark:text-white html-light:text-slate-900">{student?.name || 'Alex Rivera'}</div>
                       <div className="text-sm text-slate-400 dark:text-slate-400 html-light:text-slate-600 font-mono">
                         {student?.rollNumber || '2451-22-733-001'} • {student?.department || 'Computer Science & Engineering'}
                       </div>
