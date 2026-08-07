@@ -12,7 +12,8 @@ import type {
   RecruiterFeedback,
   InterviewReplay,
   WaiverPetition,
-  CryptographicReceipt
+  CryptographicReceipt,
+  PetitionRecord,
 } from '../types';
 
 export const INSTITUTIONAL_TENANTS: InstitutionalTenant[] = [

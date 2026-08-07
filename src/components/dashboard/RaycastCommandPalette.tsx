@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapPin, GraduationCap, FileCheck, ShieldAlert, FileText, Command, ArrowRight } from 'lucide-react';
+import { Search, MapPin, GraduationCap, FileCheck, ShieldAlert, FileText, Command, ArrowRight, UserCheck, Shield, User } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 interface CommandItem {
@@ -19,6 +19,7 @@ export const RaycastCommandPalette: React.FC = () => {
     openGisNavigation,
     setIsHitlDrawerOpen,
     setIsReceiptModalOpen,
+    setActiveRole,
   } = useApp();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -40,6 +41,42 @@ export const RaycastCommandPalette: React.FC = () => {
   }, []);
 
   const commands: CommandItem[] = [
+    {
+      id: 'cmd-role-student',
+      title: 'Switch Role ➔ Student Governance Node',
+      category: 'Role Authorization',
+      icon: <User className="w-4 h-4 text-cyan-400" />,
+      action: () => {
+        setActiveRole('student');
+        setActiveTab('dashboard');
+        setIsOpen(false);
+      },
+      shortcut: '⌘1',
+    },
+    {
+      id: 'cmd-role-faculty',
+      title: 'Switch Role ➔ Faculty Course Advisor Portal',
+      category: 'Role Authorization',
+      icon: <UserCheck className="w-4 h-4 text-emerald-400" />,
+      action: () => {
+        setActiveRole('faculty');
+        setActiveTab('dashboard');
+        setIsOpen(false);
+      },
+      shortcut: '⌘2',
+    },
+    {
+      id: 'cmd-role-hod',
+      title: 'Switch Role ➔ HOD Executive Governance Inbox',
+      category: 'Role Authorization',
+      icon: <Shield className="w-4 h-4 text-amber-400" />,
+      action: () => {
+        setActiveRole('hod');
+        setActiveTab('dashboard');
+        setIsOpen(false);
+      },
+      shortcut: '⌘3',
+    },
     {
       id: 'cmd-gis',
       title: 'Campus GIS Map & Indoor Routing',
@@ -86,17 +123,6 @@ export const RaycastCommandPalette: React.FC = () => {
       },
       shortcut: '↵',
     },
-    {
-      id: 'cmd-hod',
-      title: 'Emergency HOD Escalation Dispatch',
-      category: 'Security Proof',
-      icon: <ShieldAlert className="w-4 h-4 text-rose-400" />,
-      action: () => {
-        setIsHitlDrawerOpen(true);
-        setIsOpen(false);
-      },
-      shortcut: '↵',
-    },
   ];
 
   const filteredCommands = commands.filter(
@@ -122,7 +148,7 @@ export const RaycastCommandPalette: React.FC = () => {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Type a command or jump to workspace (e.g. GIS, Placement, Audit)..."
+            placeholder="Type a command or switch role (e.g. HOD, Faculty, GIS, Audit)..."
             autoFocus
             className="w-full bg-transparent border-none text-sm text-slate-100 placeholder-slate-500 outline-none font-mono"
           />
