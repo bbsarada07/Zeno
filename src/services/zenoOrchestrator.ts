@@ -152,12 +152,13 @@ export function classifyUserIntent(query: string): IntentClassification {
   // 4. COMMUNICATION AGENT (English, Speaking Practice, Grammar, HR Comms, GD)
   if (
     q.includes('english') ||
-    q.includes('communication skills') ||
+    q.includes('communication') ||
     q.includes('group discussion') ||
     q.includes('grammar') ||
     q.includes('vocabulary') ||
     q.includes('public speaking') ||
     q.includes('pronunciation') ||
+    q.includes('hr interview') ||
     q.includes('hr communication')
   ) {
     return {
