@@ -292,11 +292,11 @@ export const PhotorealisticCampus3D: React.FC<PhotorealisticCampus3DProps> = ({
       routeLineRef.current = null;
     }
 
-    if (!routeResult || routeResult.path.length < 2) return;
+    if (!routeResult || !routeResult.pathNodeIds || routeResult.pathNodeIds.length < 2) return;
 
     // Build 3D Waypoints Curve from Dijkstra Route Nodes
     const waypoints: THREE.Vector3[] = [];
-    routeResult.path.forEach((nodeId) => {
+    routeResult.pathNodeIds.forEach((nodeId: string) => {
       const gNode = campusData.graphNodes.find((n) => n.id === nodeId);
       if (gNode) {
         const { x, z } = gpsTo3D(gNode.coordinates[0], gNode.coordinates[1]);

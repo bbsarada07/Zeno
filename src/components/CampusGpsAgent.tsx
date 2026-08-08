@@ -256,7 +256,7 @@ export const CampusGpsAgent: React.FC = () => {
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center space-x-2">
                 <Building className="w-4 h-4 text-cyan-400" />
-                <h3 className="font-extrabold text-sm uppercase tracking-wider text-white">Unified 3D Campus Mind-Map Visualizer</h3>
+                <h3 className="font-extrabold text-sm uppercase tracking-wider text-white">Photorealistic 3D Campus Digital Twin</h3>
               </div>
 
               <div className="flex items-center space-x-2 text-xs">
@@ -266,18 +266,12 @@ export const CampusGpsAgent: React.FC = () => {
                     is3DMode ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' : 'bg-slate-900 text-slate-400 border-slate-800'
                   }`}
                 >
-                  {is3DMode ? '3D Extruded' : '2D Flat'}
-                </button>
-
-                <button
-                  onClick={() => setBearingAngle((prev) => (prev + 45) % 360)}
-                  title="Rotate Bearing Angle"
-                  className="p-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white"
-                >
-                  <Compass className="w-4 h-4" />
+                  {is3DMode ? '3D Digital Twin' : '2D Schematic'}
                 </button>
               </div>
-                  {/* PHOTOREALISTIC 3D DIGITAL TWIN & 2D SCHEMATIC CANVAS */}
+            </div>
+
+            {/* PHOTOREALISTIC 3D DIGITAL TWIN & 2D SCHEMATIC CANVAS */}
             {is3DMode ? (
               <PhotorealisticCampus3D
                 selectedLocationId={selectedBlockId}
@@ -287,9 +281,7 @@ export const CampusGpsAgent: React.FC = () => {
                 accessibilityMode={accessibilityMode}
               />
             ) : (
-              <div
-                className="w-full h-[480px] rounded-2xl bg-[#030712] border border-slate-800 relative overflow-hidden flex items-center justify-center select-none"
-              >
+              <div className="w-full h-[480px] rounded-2xl bg-[#030712] border border-slate-800 relative overflow-hidden flex items-center justify-center select-none">
                 {/* 2D Flat Schematic Map */}
                 <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-40" />
                 <div className="w-full h-full relative flex items-center justify-center">
@@ -344,22 +336,6 @@ export const CampusGpsAgent: React.FC = () => {
                 </div>
               </div>
             )}
-          </div>
-
-              {/* Recenter & Map Controls Overlay */}
-              <div className="absolute bottom-4 left-4 bg-slate-950/90 border border-slate-800 rounded-2xl p-2 font-mono text-xs flex items-center space-x-2 z-20">
-                <button
-                  onClick={() => {
-                    setPitchAngle(55);
-                    setBearingAngle(20);
-                    setZoomLevel(1.2);
-                  }}
-                  className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white font-bold"
-                >
-                  Re-center Map
-                </button>
-              </div>
-            </div>
           </div>
         </div>
 
