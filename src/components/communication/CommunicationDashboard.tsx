@@ -31,11 +31,16 @@ import {
   summarizeNotice,
   translateNotice,
   predictGrievanceDepartment,
+  answerCommunicationQuery,
+  getSharedCommunicationStore,
+  updateAppointmentStatusInStore,
+  updateFacultyAvailabilityInStore,
 } from '../../services/communicationAgentService';
 import type {
   AnnouncementItem,
   FacultyMember,
   AppointmentRecord,
+  ClubItem,
 } from '../../services/communicationAgentService';
 
 export const CommunicationDashboard: React.FC = () => {
@@ -47,19 +52,26 @@ export const CommunicationDashboard: React.FC = () => {
   // Dual View Mode: Student View vs Faculty Queue Management View
   const [viewRoleMode, setViewRoleMode] = useState<'STUDENT' | 'FACULTY'>('STUDENT');
 
-  // Datasets State
-  const [facultyList, setFacultyList] = useState<FacultyMember[]>(communicationData.facultyMembers as FacultyMember[]);
-  const [appointments, setAppointments] = useState<AppointmentRecord[]>(
-    communicationData.appointments as AppointmentRecord[]
-  );
-  const [announcements, setAnnouncements] = useState<AnnouncementItem[]>(
-    communicationData.announcements as AnnouncementItem[]
-  );
+  // Shared Datasets State
+  const initialStore = getSharedCommunicationStore();
+  const [facultyList, setFacultyList] = useState<FacultyMember[]>(initialStore.facultyMembers);
+  const [appointments, setAppointments] = useState<AppointmentRecord[]>(initialStore.appointments);
+  const [announcements, setAnnouncements] = useState<AnnouncementItem[]>(initialStore.announcements);
+  const [clubList, setClubList] = useState<ClubItem[]>(initialStore.clubs);
   const [selectedNoticeFilter, setSelectedNoticeFilter] = useState<string>('ALL');
   const [languageMode, setLanguageMode] = useState<'English' | 'Hindi' | 'Telugu'>('English');
 
   // Search Query State
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // HOD Response Modal State
+  const [hodModalApp, setHodModalApp] = useState<AppointmentRecord | null>(null);
+  const [hodStatusChoice, setHodStatusChoice] = useState<'Approved' | 'Rejected' | 'Pending'>('Approved');
+  const [hodDateInput, setHodDateInput] = useState<string>('Monday, March 10');
+  const [hodTimeInput, setHodTimeInput] = useState<string>('11:00 AM');
+  const [hodLocationInput, setHodLocationInput] = useState<string>('HOD Office, Admin Block Floor 2');
+  const [hodRemarksInput, setHodRemarksInput] = useState<string>('Please meet me at 11:00 AM in my office.');
+  const [hodRejectionReasonInput, setHodRejectionReasonInput] = useState<string>('Unavailable this week due to accreditation meeting.');
 
   // Modals & Chat Drawers
   const [activeChatFaculty, setActiveChatFaculty] = useState<FacultyMember | null>(null);
@@ -87,7 +99,7 @@ export const CommunicationDashboard: React.FC = () => {
   const [aiChatHistory, setAiChatHistory] = useState<Array<{ sender: 'user' | 'bot'; text: string }>>([
     {
       sender: 'bot',
-      text: 'Communication Agent AI ready. Ask about faculty availability, appointments, exam dates, or notices!',
+      text: 'Communication Agent AI ready. Ask about your appointment status, HOD availability, CSE notices, or club registrations!',
     },
   ]);
   const [aiInputQuery, setAiInputQuery] = useState<string>('');
@@ -108,7 +120,7 @@ export const CommunicationDashboard: React.FC = () => {
       section: student.section,
       reason: appointmentReason,
       requestedTime: selectedSlot.split(' - ')[0],
-      status: 'Waiting',
+      status: 'Pending',
       queuePosition: bookingFaculty.waitingCount + 1,
       estimatedWaitMinutes: (bookingFaculty.waitingCount + 1) * 15,
       createdTimestamp: 'Just Now',
@@ -124,27 +136,37 @@ export const CommunicationDashboard: React.FC = () => {
     setBookingFaculty(null);
   };
 
-  // Faculty Actions on Student Queue
-  const handleFacultyAction = (appId: string, action: 'Accepted' | 'Rescheduled' | 'Rejected' | 'Completed') => {
-    setAppointments((prev) => prev.map((a) => (a.id === appId ? { ...a, status: action } : a)));
+  // Save HOD Portal Response to Shared Record
+  const handleSaveHodResponse = () => {
+    if (!hodModalApp) return;
+
+    const updated = updateAppointmentStatusInStore(hodModalApp.id, {
+      status: hodStatusChoice,
+      date: hodDateInput,
+      time: hodTimeInput,
+      location: hodLocationInput,
+      remarks: hodRemarksInput,
+      rejectionReason: hodRejectionReasonInput,
+    });
+
+    if (updated) {
+      setAppointments((prev) => prev.map((a) => (a.id === updated.id ? { ...updated } : a)));
+    }
+    setHodModalApp(null);
   };
 
-  // AI Chat Bot Execution
+  // Grounded AI Chat Bot Execution (STRICT ZERO HALLUCINATION)
   const handleAiBotQuery = (queryText: string) => {
-    const q = queryText.toLowerCase();
-    let reply = 'I am your Communication Agent Assistant. How can I help you today?';
+    if (!queryText.trim()) return;
 
-    if (q.includes('dr. rao') || q.includes('rao') || q.includes('available')) {
-      reply = 'Dr. V. Rao is currently BUSY (In Meeting). Next available slot is at 02:30 PM. You have 1 active appointment (#1 in queue).';
-    } else if (q.includes('exam') || q.includes('timetable') || q.includes('mid-term')) {
-      reply = 'Mid-Term Examinations commence on March 15, 2026. Hall tickets available from March 10.';
-    } else if (q.includes('placement') || q.includes('microsoft')) {
-      reply = 'Microsoft & Amazon recruitment registration is open for CGPA >= 8.0. Deadline: Friday 5:00 PM.';
-    } else if (q.includes('canteen') || q.includes('food')) {
-      reply = 'Central Campus Canteen is open today until 10:00 PM.';
-    }
+    const groundedReply = answerCommunicationQuery(queryText, {
+      appointments,
+      facultyMembers: facultyList,
+      announcements,
+      clubs: clubList,
+    });
 
-    setAiChatHistory((prev) => [...prev, { sender: 'user', text: queryText }, { sender: 'bot', text: reply }]);
+    setAiChatHistory((prev) => [...prev, { sender: 'user', text: queryText }, { sender: 'bot', text: groundedReply }]);
   };
 
   // Handle New Grievance
@@ -393,28 +415,54 @@ export const CommunicationDashboard: React.FC = () => {
                       {appointments.map((app) => (
                         <div key={app.id} className="p-4 rounded-2xl bg-slate-950 border border-blue-500/40 space-y-3">
                           <div className="flex items-center justify-between">
-                            <span className="px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/40 text-[10px] font-bold">
-                              Appointment Requested ✓
+                            <span
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                                app.status === 'Approved' || app.status === 'Accepted'
+                                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                  : app.status === 'Rejected'
+                                  ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                                  : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                              }`}
+                            >
+                              Appointment Status: {app.status === 'Accepted' ? 'Approved' : app.status}
                             </span>
-                            <span className="text-xs font-extrabold text-orange-400">Position #{app.queuePosition} in Queue</span>
+                            <span className="text-xs font-extrabold text-orange-400">Position #{app.queuePosition || 1} in Queue</span>
                           </div>
 
-                          <div className="space-y-1">
+                          <div className="space-y-1.5 text-xs">
                             <div className="font-bold text-white text-sm">{app.facultyName}</div>
-                            <div className="text-xs text-slate-300">Reason: {app.reason}</div>
-                            <div className="text-[11px] text-slate-400">
-                              Requested Time: <span className="text-cyan-300 font-bold">{app.requestedTime}</span> (Est. Wait: {app.estimatedWaitMinutes} mins)
-                            </div>
+                            <div className="text-slate-300">Reason: {app.reason}</div>
+
+                            {app.status === 'Approved' || app.status === 'Accepted' ? (
+                              <div className="mt-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-200 text-xs space-y-1 font-mono">
+                                <div className="font-bold text-emerald-300 flex items-center space-x-1">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                  <span>HOD Response Received (Approved)</span>
+                                </div>
+                                <div>Date: <span className="text-white font-bold">{app.date || 'Monday, March 10'}</span></div>
+                                <div>Time: <span className="text-white font-bold">{app.time || app.requestedTime}</span></div>
+                                <div>Location: <span className="text-white font-bold">{app.location || 'HOD Office'}</span></div>
+                                <div>HOD Remarks: <span className="text-slate-200 italic">"{app.remarks || 'Please meet me at the scheduled time.'}"</span></div>
+                              </div>
+                            ) : app.status === 'Rejected' ? (
+                              <div className="mt-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-200 text-xs space-y-1 font-mono">
+                                <div className="font-bold text-rose-300 flex items-center space-x-1">
+                                  <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+                                  <span>Request Rejected by HOD</span>
+                                </div>
+                                <div>Reason: <span className="text-slate-200 italic">"{app.rejectionReason || app.remarks || 'Unavailable this week.'}"</span></div>
+                              </div>
+                            ) : (
+                              <div className="mt-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs font-bold flex items-center justify-between font-mono">
+                                <div className="flex items-center space-x-1.5">
+                                  <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                                  <span>Pending / Awaiting HOD Response</span>
+                                </div>
+                              </div>
+                            )}
                           </div>
 
-                          <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-200 text-xs font-bold flex items-center justify-between">
-                            <div className="flex items-center space-x-1.5">
-                              <Sparkles className="w-4 h-4 text-orange-400" />
-                              <span>Real-Time Alert: Dr. Rao will be Available at 2:30 PM.</span>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 pt-1">
                             <button
                               onClick={() => {
                                 const fac = facultyList.find((f) => f.name === app.facultyName);
@@ -446,8 +494,8 @@ export const CommunicationDashboard: React.FC = () => {
                     <UserCheck className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-extrabold text-base text-white">Faculty Control Center: Dr. V. Rao</h3>
-                    <p className="text-xs text-slate-400">Waiting Students & Appointment Requests Queue</p>
+                    <h3 className="font-extrabold text-base text-white">Faculty & HOD Control Center: Dr. V. Rao</h3>
+                    <p className="text-xs text-slate-400">Waiting Students & Appointment Responses Queue</p>
                   </div>
                 </div>
 
@@ -472,7 +520,7 @@ export const CommunicationDashboard: React.FC = () => {
               {/* Waiting Students List */}
               <div className="space-y-4">
                 <div className="text-xs font-bold text-slate-300">
-                  Waiting Students Queue ({appointments.length} Pending Requests):
+                  Waiting Students Queue ({appointments.length} Student Requests):
                 </div>
 
                 <div className="space-y-3">
@@ -485,19 +533,41 @@ export const CommunicationDashboard: React.FC = () => {
                           </span>
                           <span className="font-bold text-white text-sm">{app.studentName}</span>
                           <span className="text-xs text-slate-400">({app.department}, {app.year})</span>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${app.status === 'Accepted' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${app.status === 'Approved' || app.status === 'Accepted' ? 'bg-emerald-500/20 text-emerald-300' : app.status === 'Rejected' ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300'}`}>
                             {app.status}
                           </span>
                         </div>
                         <div className="text-xs text-slate-300 pl-8">Reason: <span className="text-white font-bold">{app.reason}</span></div>
                         <div className="text-[10px] text-slate-400 pl-8">Requested Slot: {app.requestedTime}</div>
+                        {app.remarks && <div className="text-[10px] text-emerald-400 pl-8 font-mono">HOD Message: "{app.remarks}"</div>}
                       </div>
 
                       <div className="flex items-center space-x-2 shrink-0 pl-8 sm:pl-0">
-                        {app.status !== 'Accepted' && (
-                          <button
-                            onClick={() => handleFacultyAction(app.id, 'Accepted')}
-                            className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-all"
+                        <button
+                          onClick={() => {
+                            setHodModalApp(app);
+                            setHodStatusChoice('Approved');
+                          }}
+                          className="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition-all shadow-[0_0_12px_rgba(16,185,129,0.3)]"
+                        >
+                          Approve Request
+                        </button>
+                        <button
+                          onClick={() => {
+                            setHodModalApp(app);
+                            setHodStatusChoice('Rejected');
+                          }}
+                          className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs transition-all"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
                           >
                             Accept
                           </button>
@@ -926,7 +996,13 @@ export const CommunicationDashboard: React.FC = () => {
           <div className="space-y-1 pt-1">
             <div className="text-[10px] text-slate-400 font-bold">Quick Ask:</div>
             <div className="flex flex-wrap gap-1">
-              {['Is Dr. Rao available?', 'When is my next exam?', 'Any placement updates?'].map((chip, idx) => (
+              {[
+                'Did my HOD approve my appointment?',
+                'When is my HOD available?',
+                'Why was my appointment rejected?',
+                'What is the latest announcement?',
+                'What clubs are open for registration?',
+              ].map((chip, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleAiBotQuery(chip)}
@@ -935,6 +1011,124 @@ export const CommunicationDashboard: React.FC = () => {
                   {chip}
                 </button>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* HOD RESPONSE EDITING MODAL */}
+      {hodModalApp && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-lg rounded-3xl bg-slate-900 border border-orange-500/40 p-6 space-y-4 font-mono shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center space-x-2">
+                <UserCheck className="w-5 h-5 text-orange-400" />
+                <h3 className="font-extrabold text-sm text-white">HOD Response Portal — Appointment #{hodModalApp.id}</h3>
+              </div>
+              <button onClick={() => setHodModalApp(null)} className="text-slate-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <span className="text-slate-400">Student:</span> <span className="text-white font-bold">{hodModalApp.studentName}</span> ({hodModalApp.department}, {hodModalApp.year})
+              </div>
+              <div>
+                <span className="text-slate-400">Reason:</span> <span className="text-cyan-300 font-bold">{hodModalApp.reason}</span>
+              </div>
+
+              {/* Status Selector */}
+              <div className="space-y-1">
+                <label className="text-slate-400 font-bold">Set Status:</label>
+                <select
+                  value={hodStatusChoice}
+                  onChange={(e) => setHodStatusChoice(e.target.value as any)}
+                  className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-bold focus:outline-none focus:border-orange-500"
+                >
+                  <option value="Approved">Approved</option>
+                  <option value="Rejected">Rejected</option>
+                  <option value="Pending">Pending / Awaiting Response</option>
+                </select>
+              </div>
+
+              {/* Date & Time Selection */}
+              {hodStatusChoice === 'Approved' && (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-slate-400 font-bold">Appointment Date:</label>
+                      <input
+                        type="text"
+                        value={hodDateInput}
+                        onChange={(e) => setHodDateInput(e.target.value)}
+                        placeholder="e.g. Monday, March 10"
+                        className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-slate-400 font-bold">Appointment Time:</label>
+                      <input
+                        type="text"
+                        value={hodTimeInput}
+                        onChange={(e) => setHodTimeInput(e.target.value)}
+                        placeholder="e.g. 11:00 AM"
+                        className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-slate-400 font-bold">Location / Room:</label>
+                    <input
+                      type="text"
+                      value={hodLocationInput}
+                      onChange={(e) => setHodLocationInput(e.target.value)}
+                      placeholder="e.g. HOD Office, Admin Block Floor 2"
+                      className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-slate-400 font-bold">HOD Remarks / Instructions:</label>
+                    <textarea
+                      rows={2}
+                      value={hodRemarksInput}
+                      onChange={(e) => setHodRemarksInput(e.target.value)}
+                      placeholder="e.g. Please meet me at 11:00 AM with your capstone slides."
+                      className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none"
+                    />
+                  </div>
+                </>
+              )}
+
+              {hodStatusChoice === 'Rejected' && (
+                <div className="space-y-1">
+                  <label className="text-slate-400 font-bold">Rejection Reason:</label>
+                  <textarea
+                    rows={3}
+                    value={hodRejectionReasonInput}
+                    onChange={(e) => setHodRejectionReasonInput(e.target.value)}
+                    placeholder="Provide specific reason for rejection..."
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white focus:outline-none"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-800">
+              <button
+                onClick={() => setHodModalApp(null)}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveHodResponse}
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-blue-600 hover:from-orange-400 hover:to-blue-500 text-white font-extrabold text-xs shadow-lg"
+              >
+                Save & Update Student Portal
+              </button>
             </div>
           </div>
         </div>
