@@ -6,6 +6,7 @@ import { CryptographicReceiptModal } from './CryptographicReceiptModal';
 import { NotificationDrawer } from './NotificationDrawer';
 import { GisMapModal } from '../gis/GisMapModal';
 import { Campus3DMap } from '../Campus3DMap';
+import { CommunicationDashboard } from '../communication/CommunicationDashboard';
 import { PlacementDashboard } from '../placement/PlacementDashboard';
 import { PlacementWorkspace } from '../PlacementWorkspace';
 import { WaiverPetitionHub } from '../waiver/WaiverPetitionHub';
@@ -219,6 +220,12 @@ export const ConsoleDashboard: React.FC = () => {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'communication' && (
+          <div className="h-full p-4 sm:p-6 overflow-y-auto bg-transparent">
+            <CommunicationDashboard />
           </div>
         )}
 

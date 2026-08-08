@@ -19,6 +19,7 @@ import {
   FileText,
   BookOpen,
   Mic,
+  MessageSquare,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { INSTITUTIONAL_TENANTS } from '../../data/mockData';

@@ -31,6 +31,8 @@ import {
   summarizeNotice,
   translateNotice,
   predictGrievanceDepartment,
+} from '../../services/communicationAgentService';
+import type {
   AnnouncementItem,
   FacultyMember,
   AppointmentRecord,

@@ -153,4 +153,6 @@ export { calculateCampusRoute } from '../services/campusRouter';
 export type { RouteResult, RouteStep } from '../services/campusRouter';
 export { processVoiceDispatch } from '../services/voiceDispatcherService';
 export type { VoiceDispatchResponse } from '../services/voiceDispatcherService';
+export { summarizeNotice, translateNotice, predictGrievanceDepartment, searchCommunicationHub } from '../services/communicationAgentService';
+export type { AnnouncementItem, FacultyMember, AppointmentRecord } from '../services/communicationAgentService';
 
