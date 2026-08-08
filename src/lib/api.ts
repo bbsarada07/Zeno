@@ -143,6 +143,6 @@ class ResilientApiClient {
 
 export const apiClient = new ResilientApiClient();
 
-export { queryZenoAgent, sendQueryToBackend, executeClientEnclaveFallback, PRIMARY_BACKEND_URL } from '../services/aiRoutingService';
-export type { AgentResponse } from '../services/aiRoutingService';
+export { queryZenoAgent, sendQueryToBackend, executeClientEnclaveFallback, dispatchVoiceQuery, PRIMARY_BACKEND_URL } from '../services/aiRoutingService';
+export type { AgentResponse, VoiceAgentResponse } from '../services/aiRoutingService';
 

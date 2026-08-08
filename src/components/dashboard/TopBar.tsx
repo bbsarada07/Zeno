@@ -18,10 +18,12 @@ import {
   GraduationCap,
   FileText,
   BookOpen,
+  Mic,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { INSTITUTIONAL_TENANTS } from '../../data/mockData';
 import { KernelStatus } from './KernelStatus';
+import { VoiceAssistant } from '../VoiceAssistant';
 import type { UserRole, NavigationTab } from '../../types';
 
 export const TopBar: React.FC = () => {
@@ -44,6 +46,7 @@ export const TopBar: React.FC = () => {
   const [isTenantDropdownOpen, setIsTenantDropdownOpen] = useState(false);
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
 
   const rolesList: { role: UserRole; label: string; badge: string }[] = [
     { role: 'student', label: 'Student Governance Node', badge: 'CSM-SEC-A' },
@@ -219,6 +222,16 @@ export const TopBar: React.FC = () => {
           )}
         </div>
 
+        {/* Voice Assistant Mic Button */}
+        <button
+          onClick={() => setIsVoiceModalOpen(true)}
+          title="Open Voice Intelligence Dispatcher"
+          className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-400 hover:border-purple-500/60 transition-all flex items-center justify-center relative shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+        >
+          <Mic className="w-4 h-4 animate-pulse" />
+          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-purple-400 rounded-full animate-ping" />
+        </button>
+
         {/* Theme Toggle Button */}
         <button
           onClick={toggleTheme}
@@ -250,6 +263,9 @@ export const TopBar: React.FC = () => {
           <LogOut className="w-4 h-4" />
           <span className="hidden sm:inline">Logout</span>
         </button>
+
+        {/* Voice Assistant Modal */}
+        <VoiceAssistant isOpen={isVoiceModalOpen} onClose={() => setIsVoiceModalOpen(false)} />
       </div>
 
       {/* Mobile Animated Slide-Out Hamburger Navigation Menu (< 768px) */}

@@ -252,6 +252,49 @@ async def placement_evaluate_endpoint(payload: PlacementEvaluatePayload):
         "telemetry": {"status": "ONLINE", "kernel": "ZENO-K3K0"}
     }
 
+# Explicit /api/v1/voice/query Endpoint
+class VoiceQueryPayload(BaseModel):
+    prompt: str
+    user: Optional[Dict[str, Any]] = None
+
+@app.post("/api/v1/voice/query")
+async def voice_query_endpoint(payload: VoiceQueryPayload):
+    prompt = (payload.prompt or "").lower()
+
+    if any(w in prompt for w in ["lecture", "class", "algorithms", "grade", "assignment", "course", "notes"]):
+        return {
+            "agentName": "Academic Agent",
+            "speechText": "Activating Academic Agent. You have your Algorithms lecture today at 2:00 PM in Lecture Hall 3B with Professor Sharma.",
+            "uiPayload": {"subject": "Algorithms", "time": "2:00 PM", "room": "LH-3B"}
+        }
+
+    if any(w in prompt for w in ["internship", "placement", "job", "resume", "drive", "ats"]):
+        return {
+            "agentName": "Placement Agent",
+            "speechText": "Placement Agent here. Two new software engineering internships were posted yesterday by TechCorp and Innovate Labs. The application deadline is this Friday.",
+            "uiPayload": {"drives": ["TechCorp", "Innovate Labs"], "deadline": "Friday"}
+        }
+
+    if any(w in prompt for w in ["ac", "maintenance", "hostel", "canteen", "shuttle", "repair", "helpdesk"]):
+        return {
+            "agentName": "Service Agent",
+            "speechText": "Activating Service Agent. I've logged a maintenance ticket for the hostel AC unit in Room 204B. A technician will inspect it between 3:00 PM and 5:00 PM today.",
+            "uiPayload": {"ticketId": "SRV-8821", "status": "DISPATCHED"}
+        }
+
+    if any(w in prompt for w in ["hackathon", "event", "fest", "club", "workshop"]):
+        return {
+            "agentName": "Events Agent",
+            "speechText": "Events Agent here. The Annual Campus Hackathon is scheduled for October 12th at the Student Activity Center. Registration opens tomorrow morning.",
+            "uiPayload": {"event": "Campus Hackathon", "date": "Oct 12", "location": "SAC"}
+        }
+
+    return {
+        "agentName": "Communication Agent",
+        "speechText": "Activating Communication Agent. There is one high-priority alert: the main library will close early today at 6:00 PM for maintenance.",
+        "uiPayload": {"alertType": "HIGH_PRIORITY", "systemNotice": "Library early closure"}
+    }
+
 # Explicit /api/v1/auth Endpoints
 @app.post("/api/v1/auth/send-otp")
 async def send_otp_endpoint(payload: OTPRequest):

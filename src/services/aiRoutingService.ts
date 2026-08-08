@@ -13,6 +13,59 @@ export interface AgentResponse {
   telemetry?: Record<string, any>;
 }
 
+export interface VoiceAgentResponse {
+  agentName: 'Academic Agent' | 'Placement Agent' | 'Events Agent' | 'Service Agent' | 'Communication Agent';
+  speechText: string;
+  uiPayload?: Record<string, any>;
+}
+
+export function dispatchVoiceQuery(prompt: string): VoiceAgentResponse {
+  const q = prompt.toLowerCase();
+
+  // 1. Academic Agent
+  if (q.includes('lecture') || q.includes('class') || q.includes('algorithms') || q.includes('grade') || q.includes('assignment') || q.includes('course') || q.includes('notes')) {
+    return {
+      agentName: 'Academic Agent',
+      speechText: 'Activating Academic Agent. You have your Algorithms lecture today at 2:00 PM in Lecture Hall 3B with Professor Sharma.',
+      uiPayload: { subject: 'Algorithms', time: '2:00 PM', room: 'LH-3B' },
+    };
+  }
+
+  // 2. Placement Agent
+  if (q.includes('internship') || q.includes('placement') || q.includes('job') || q.includes('resume') || q.includes('drive') || q.includes('ats')) {
+    return {
+      agentName: 'Placement Agent',
+      speechText: 'Placement Agent here. Two new software engineering internships were posted yesterday by TechCorp and Innovate Labs. The application deadline is this Friday.',
+      uiPayload: { drives: ['TechCorp', 'Innovate Labs'], deadline: 'Friday' },
+    };
+  }
+
+  // 3. Service Agent
+  if (q.includes('ac') || q.includes('maintenance') || q.includes('hostel') || q.includes('canteen') || q.includes('shuttle') || q.includes('repair') || q.includes('helpdesk')) {
+    return {
+      agentName: 'Service Agent',
+      speechText: "Activating Service Agent. I've logged a maintenance ticket for the hostel AC unit in Room 204B. A technician will inspect it between 3:00 PM and 5:00 PM today.",
+      uiPayload: { ticketId: 'SRV-8821', status: 'DISPATCHED' },
+    };
+  }
+
+  // 4. Events Agent
+  if (q.includes('hackathon') || q.includes('event') || q.includes('fest') || q.includes('club') || q.includes('workshop')) {
+    return {
+      agentName: 'Events Agent',
+      speechText: 'Events Agent here. The Annual Campus Hackathon is scheduled for October 12th at the Student Activity Center. Registration opens tomorrow morning.',
+      uiPayload: { event: 'Campus Hackathon', date: 'Oct 12', location: 'SAC' },
+    };
+  }
+
+  // 5. Communication Agent (Fallback / General)
+  return {
+    agentName: 'Communication Agent',
+    speechText: 'Activating Communication Agent. There is one high-priority alert: the main library will close early today at 6:00 PM for maintenance.',
+    uiPayload: { alertType: 'HIGH_PRIORITY', systemNotice: 'Library early closure' },
+  };
+}
+
 export async function sendQueryToBackend(promptText: string, userPayload: any): Promise<AgentResponse> {
   const BASE_URL = PRIMARY_BACKEND_URL.replace(/\/$/, '');
   const response = await fetch(`${BASE_URL}/api/v1/query`, {
