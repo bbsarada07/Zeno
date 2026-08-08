@@ -1,13 +1,14 @@
 import React, { useMemo } from 'react';
 import { getCampusLocations } from '../services/dijkstraRouter';
-import type { CampusLocation, DijkstraResult } from '../services/dijkstraRouter';
-import { MapPin, Navigation, Compass } from 'lucide-react';
+import type { DijkstraResult } from '../services/dijkstraRouter';
+import { Compass } from 'lucide-react';
 
 interface Campus2DMapProps {
   selectedLocationId: string | null;
   sourceLocationId: string;
   onSelectLocation: (locId: string) => void;
   routeResult: DijkstraResult | null;
+  activeStepIndex?: number;
 }
 
 export const Campus2DMap: React.FC<Campus2DMapProps> = ({
@@ -15,133 +16,175 @@ export const Campus2DMap: React.FC<Campus2DMapProps> = ({
   sourceLocationId,
   onSelectLocation,
   routeResult,
+  activeStepIndex = 0,
 }) => {
   const locations = useMemo(() => getCampusLocations(), []);
 
-  // Map coordinate bounds to SVG ViewBox (World X: -160 to +160, World Z: -180 to +180)
-  // SVG coordinates: Center (400, 300), Width: 800, Height: 600
-  const worldToSvg = (x: number, z: number): { cx: number; cy: number } => {
-    const cx = 400 + x * 2.1;
-    const cy = 300 + z * 1.65;
-    return { cx, cy };
-  };
+  // Map 3D world coords → SVG canvas coords
+  const worldToSvg = (x: number, z: number): { cx: number; cy: number } => ({
+    cx: 400 + x * 2.1,
+    cy: 300 + z * 1.65,
+  });
 
-  // Find source & destination coordinates
-  const sourceLoc = locations.find((l) => l.id === sourceLocationId || l.code.toLowerCase() === sourceLocationId.replace('n_', '').toLowerCase());
+  const sourceLoc = locations.find(
+    (l) => l.id === sourceLocationId || l.code.toLowerCase() === sourceLocationId.replace('n_', '').toLowerCase()
+  );
   const destLoc = locations.find((l) => l.id === selectedLocationId);
 
   const sourcePos = sourceLoc ? worldToSvg(sourceLoc.position3D[0], sourceLoc.position3D[2]) : worldToSvg(80, 100);
   const destPos = destLoc ? worldToSvg(destLoc.position3D[0], destLoc.position3D[2]) : null;
 
-  // Build SVG Path for Dijkstra Route
-  const routeSvgPoints = useMemo(() => {
-    if (!routeResult || routeResult.pathCoordinates.length < 2) return null;
-    return routeResult.pathCoordinates
-      .map((pt) => {
-        const { cx, cy } = worldToSvg(pt[0], pt[2]);
-        return `${cx},${cy}`;
-      })
-      .join(' ');
+  // Build list of SVG [cx, cy] points along the Dijkstra route
+  const routePoints = useMemo(() => {
+    if (!routeResult || routeResult.pathCoordinates.length < 2) return [];
+    return routeResult.pathCoordinates.map((pt) => worldToSvg(pt[0], pt[2]));
   }, [routeResult]);
+
+  const routePolylineStr = routePoints.map((p) => `${p.cx},${p.cy}`).join(' ');
+
+  // Midpoints + direction angles for each route segment (for arrow placement)
+  const segmentArrows = useMemo(() => {
+    const arrows: { x: number; y: number; angle: number; isActive: boolean }[] = [];
+    for (let i = 0; i < routePoints.length - 1; i++) {
+      const a = routePoints[i];
+      const b = routePoints[i + 1];
+      const mx = (a.cx + b.cx) / 2;
+      const my = (a.cy + b.cy) / 2;
+      const angle = Math.atan2(b.cy - a.cy, b.cx - a.cx) * (180 / Math.PI) + 90;
+      arrows.push({ x: mx, y: my, angle, isActive: i === activeStepIndex });
+    }
+    return arrows;
+  }, [routePoints, activeStepIndex]);
+
+  // Active step highlight node
+  const activeStepCoord = useMemo(() => {
+    if (!routeResult || routePoints.length === 0) return null;
+    const idx = Math.min(activeStepIndex, routePoints.length - 1);
+    return routePoints[idx] ?? null;
+  }, [routePoints, activeStepIndex, routeResult]);
 
   return (
     <div className="w-full h-full relative select-none overflow-hidden rounded-2xl bg-[#09111E] border border-slate-800 shadow-2xl flex flex-col items-center justify-center font-mono">
-      {/* 2D MAP HEADER BAR */}
+      {/* HEADER */}
       <div className="absolute top-4 left-4 z-20 px-3.5 py-1.5 rounded-xl bg-slate-950/90 border border-cyan-500/40 text-xs text-cyan-300 font-bold flex items-center space-x-2 backdrop-blur-md shadow-md">
         <Compass className="w-4 h-4 text-cyan-400 animate-spin-slow" />
         <span>INTERACTIVE 2D CAMPUS GIS MAP</span>
       </div>
 
-      {/* SVG CANVAS FOR ROADS, BUILDINGS, LABELS & ROUTE */}
       <svg className="w-full h-full" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet">
-        {/* Background Grass & Terrain */}
+        <defs>
+          {/* Arrow marker for route direction */}
+          <marker
+            id="route-arrow"
+            markerWidth="8"
+            markerHeight="8"
+            refX="4"
+            refY="4"
+            orient="auto"
+            markerUnits="strokeWidth"
+          >
+            <polygon points="0,0 8,4 0,8 2,4" fill="#00f0ff" opacity="0.9" />
+          </marker>
+
+          {/* Active step arrow marker (brighter) */}
+          <marker
+            id="route-arrow-active"
+            markerWidth="9"
+            markerHeight="9"
+            refX="4.5"
+            refY="4.5"
+            orient="auto"
+            markerUnits="strokeWidth"
+          >
+            <polygon points="0,0 9,4.5 0,9 2,4.5" fill="#ffffff" opacity="1" />
+          </marker>
+
+          {/* Glow filter for active step node */}
+          <filter id="glow-cyan" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* Campus terrain background */}
         <rect x="0" y="0" width="800" height="600" fill="#0B1726" />
         <rect x="40" y="30" width="720" height="540" rx="20" fill="#0D1E30" stroke="#1E293B" strokeWidth="2" />
 
-        {/* Primary Campus Asphalt Roads */}
-        <g stroke="#1E293B" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.65">
-          {/* Main Entrance Highway */}
-          <path d="M 379 520 L 379 430 L 379 260 L 379 170" />
-          {/* Ring Road East */}
-          <path d="M 379 430 L 568 430 L 673 300 L 673 170 L 568 69 L 379 69" />
-          {/* Ring Road West */}
-          <path d="M 379 430 L 232 430 L 169 333 L 169 234 L 232 69 L 379 69" />
+        {/* ── CAMPUS ROAD NETWORK ───────────────────────────────── */}
+        <g stroke="#1a2840" strokeWidth="18" strokeLinecap="round" strokeLinejoin="round" fill="none">
+          {/* Main entrance highway (N-S spine) */}
+          <path d="M 379 530 L 379 130 L 379 69" />
+          {/* East ring */}
+          <path d="M 379 299 L 568 299 L 673 180 L 568 69 L 379 69" />
+          {/* West ring */}
+          <path d="M 379 299 L 232 299 L 169 200 L 232 69 L 379 69" />
+          {/* Hostel connector */}
+          <path d="M 379 133 L 673 133" />
+          {/* Sports / stadium spine */}
+          <path d="M 493 232 L 673 160 L 673 82" />
         </g>
 
-        {/* Secondary Walking Pathways */}
-        <g stroke="#334155" strokeWidth="8" strokeLinecap="round" fill="none" opacity="0.8">
-          <path d="M 378 430 L 494 430 L 568 430" />
-          <path d="M 378 333 L 295 333 L 169 333" />
-          <path d="M 378 333 L 452 333 L 673 300" />
-          <path d="M 378 234 L 232 234" />
-          <path d="M 378 234 L 463 234" />
-          <path d="M 378 118 L 337 118" />
-          <path d="M 378 118 L 463 118" />
+        {/* Centre lane stripes */}
+        <g stroke="#253548" strokeWidth="3" strokeLinecap="round" strokeDasharray="16 14" fill="none" opacity="0.7">
+          <path d="M 379 530 L 379 69" />
+          <path d="M 379 299 L 568 299" />
+          <path d="M 379 299 L 232 299" />
+          <path d="M 379 133 L 580 133" />
         </g>
 
-        {/* 16 CAMPUS BUILDINGS & GROUNDS FOOTPRINTS */}
+        {/* Secondary walking pathways */}
+        <g stroke="#233042" strokeWidth="7" strokeLinecap="round" fill="none" opacity="0.85">
+          <path d="M 379 299 L 379 232 L 295 232 L 169 232" />
+          <path d="M 379 232 L 463 232 L 580 200" />
+          <path d="M 379 166 L 337 166" />
+          <path d="M 379 166 L 463 166" />
+          <path d="M 379 349 L 493 349 L 673 299" />
+        </g>
+
+        {/* ── BUILDINGS ─────────────────────────────────────────── */}
         {locations.map((loc) => {
           const { cx, cy } = worldToSvg(loc.position3D[0], loc.position3D[2]);
           const isSelected = selectedLocationId === loc.id;
           const isSource = sourceLoc?.id === loc.id;
-
-          const width = loc.dimensions.width * 1.5;
-          const height = loc.dimensions.length * 1.2;
+          const w = loc.dimensions.width * 1.5;
+          const h = loc.dimensions.length * 1.2;
 
           return (
-            <g
-              key={loc.id}
-              onClick={() => onSelectLocation(loc.id)}
-              className="cursor-pointer group"
-            >
-              {/* Building Shadow / Ground Footprint */}
+            <g key={loc.id} onClick={() => onSelectLocation(loc.id)} className="cursor-pointer group">
+              {/* Drop shadow */}
               <rect
-                x={cx - width / 2 + 3}
-                y={cy - height / 2 + 3}
-                width={width}
-                height={height}
-                rx="6"
-                fill="#000000"
-                opacity="0.4"
+                x={cx - w / 2 + 3} y={cy - h / 2 + 3}
+                width={w} height={h} rx="6"
+                fill="#000000" opacity="0.35"
               />
-
-              {/* Building Main Base Shape */}
+              {/* Building base */}
               <rect
-                x={cx - width / 2}
-                y={cy - height / 2}
-                width={width}
-                height={height}
-                rx="6"
+                x={cx - w / 2} y={cy - h / 2}
+                width={w} height={h} rx="6"
                 fill={isSelected ? '#0284C7' : isSource ? '#0F766E' : '#1E293B'}
                 stroke={isSelected ? '#00F0FF' : isSource ? '#14B8A6' : '#475569'}
                 strokeWidth={isSelected ? '3' : '1.5'}
                 className="transition-all duration-300 group-hover:stroke-cyan-400"
               />
-
-              {/* Dynamic Glow Effect ONLY for Selected Building */}
+              {/* Pulse glow — selected only */}
               {isSelected && (
                 <rect
-                  x={cx - width / 2 - 4}
-                  y={cy - height / 2 - 4}
-                  width={width + 8}
-                  height={height + 8}
-                  rx="10"
-                  fill="none"
-                  stroke="#00F0FF"
-                  strokeWidth="2"
-                  opacity="0.8"
+                  x={cx - w / 2 - 4} y={cy - h / 2 - 4}
+                  width={w + 8} height={h + 8} rx="10"
+                  fill="none" stroke="#00F0FF" strokeWidth="2"
+                  opacity="0.75"
                   className="animate-pulse"
                 />
               )}
-
-              {/* Readable Building Label */}
+              {/* Label */}
               <text
-                x={cx}
-                y={cy + 3}
-                textAnchor="middle"
-                dominantBaseline="central"
+                x={cx} y={cy + 3}
+                textAnchor="middle" dominantBaseline="central"
                 fill={isSelected ? '#FFFFFF' : '#E2E8F0'}
-                fontSize={width > 70 ? '10' : '8'}
+                fontSize={w > 70 ? '10' : '8'}
                 fontWeight={isSelected ? 'bold' : '600'}
                 className="pointer-events-none"
               >
@@ -151,58 +194,91 @@ export const Campus2DMap: React.FC<Campus2DMapProps> = ({
           );
         })}
 
-        {/* DIJKSTRA 2D ROUTE ANIMATED LINE */}
-        {routeSvgPoints && (
+        {/* ── DIJKSTRA ROUTE ────────────────────────────────────── */}
+        {routePoints.length >= 2 && (
           <g>
-            {/* Outer Glow Route */}
+            {/* Outer glow */}
             <polyline
-              points={routeSvgPoints}
-              fill="none"
-              stroke="#00F0FF"
-              strokeWidth="7"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              opacity="0.5"
+              points={routePolylineStr}
+              fill="none" stroke="#00F0FF" strokeWidth="9"
+              strokeLinecap="round" strokeLinejoin="round"
+              opacity="0.28"
             />
-
-            {/* Core Route Line */}
+            {/* Core animated route line with mid-point arrow markers */}
             <polyline
-              points={routeSvgPoints}
-              fill="none"
-              stroke="#38BDF8"
-              strokeWidth="4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeDasharray="8 6"
+              points={routePolylineStr}
+              fill="none" stroke="#38BDF8" strokeWidth="4"
+              strokeLinecap="round" strokeLinejoin="round"
+              strokeDasharray="10 7"
+              markerMid="url(#route-arrow)"
               className="animate-dash"
             />
           </g>
         )}
 
-        {/* SOURCE MARKER (START) */}
+        {/* ── SEGMENT ARROW CONES (explicit midpoint triangles) ─── */}
+        {segmentArrows.map((arrow, idx) => (
+          <g key={idx} transform={`translate(${arrow.x}, ${arrow.y}) rotate(${arrow.angle})`}>
+            <polygon
+              points="0,-7 5,5 -5,5"
+              fill={arrow.isActive ? '#ffffff' : '#00f0ff'}
+              opacity={arrow.isActive ? 1 : 0.8}
+              stroke={arrow.isActive ? '#06b6d4' : 'none'}
+              strokeWidth="1"
+              filter={arrow.isActive ? 'url(#glow-cyan)' : undefined}
+            />
+          </g>
+        ))}
+
+        {/* ── ACTIVE STEP POSITION HIGHLIGHT ───────────────────── */}
+        {activeStepCoord && routePoints.length > 1 && (
+          <g>
+            <circle
+              cx={activeStepCoord.cx} cy={activeStepCoord.cy}
+              r="16" fill="#06b6d4" opacity="0.2"
+              className="animate-ping"
+              filter="url(#glow-cyan)"
+            />
+            <circle
+              cx={activeStepCoord.cx} cy={activeStepCoord.cy}
+              r="7" fill="#06b6d4" stroke="#ffffff" strokeWidth="2"
+              filter="url(#glow-cyan)"
+            />
+            <text
+              x={activeStepCoord.cx} y={activeStepCoord.cy - 16}
+              textAnchor="middle" fill="#06b6d4"
+              fontSize="9" fontWeight="bold"
+              className="pointer-events-none"
+            >
+              STEP {activeStepIndex + 1}
+            </text>
+          </g>
+        )}
+
+        {/* ── SOURCE MARKER ─────────────────────────────────────── */}
         {sourcePos && (
           <g transform={`translate(${sourcePos.cx}, ${sourcePos.cy})`}>
-            <circle r="14" fill="#14B8A6" opacity="0.3" className="animate-ping" />
+            <circle r="14" fill="#14B8A6" opacity="0.25" className="animate-ping" />
             <circle r="8" fill="#14B8A6" stroke="#FFFFFF" strokeWidth="2" />
-            <text x="0" y="-14" textAnchor="middle" fill="#14B8A6" fontSize="10" fontWeight="bold">
+            <text x="0" y="-15" textAnchor="middle" fill="#14B8A6" fontSize="10" fontWeight="bold">
               START
             </text>
           </g>
         )}
 
-        {/* DESTINATION MARKER (ONLY FOR ACTIVE SELECTED DESTINATION) */}
+        {/* ── DESTINATION MARKER ───────────────────────────────── */}
         {destPos && destLoc && (
           <g transform={`translate(${destPos.cx}, ${destPos.cy})`}>
-            <circle r="18" fill="#EF4444" opacity="0.35" className="animate-ping" />
+            <circle r="18" fill="#EF4444" opacity="0.3" className="animate-ping" />
             <circle r="9" fill="#EF4444" stroke="#FFFFFF" strokeWidth="2" />
-            <text x="0" y="-16" textAnchor="middle" fill="#F87171" fontSize="11" fontWeight="bold">
-              DESTINATION
+            <text x="0" y="-17" textAnchor="middle" fill="#F87171" fontSize="11" fontWeight="bold">
+              DEST
             </text>
           </g>
         )}
       </svg>
 
-      {/* 2D MAP FOOTER LEGEND */}
+      {/* FOOTER LEGEND */}
       <div className="absolute bottom-4 right-4 z-20 px-3 py-1.5 rounded-xl bg-slate-950/90 border border-slate-800 text-[11px] text-slate-300 flex items-center space-x-4 backdrop-blur-md">
         <div className="flex items-center space-x-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-teal-400" />
@@ -214,7 +290,11 @@ export const Campus2DMap: React.FC<Campus2DMapProps> = ({
         </div>
         <div className="flex items-center space-x-1.5">
           <span className="w-4 h-1 rounded bg-cyan-400" />
-          <span>Shortest Path</span>
+          <span>Route</span>
+        </div>
+        <div className="flex items-center space-x-1.5">
+          <span className="text-cyan-300 font-bold">▲</span>
+          <span>Direction</span>
         </div>
       </div>
     </div>

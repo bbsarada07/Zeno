@@ -121,17 +121,10 @@ export const CommunicationDashboard: React.FC = () => {
       reason: appointmentReason,
       requestedTime: selectedSlot.split(' - ')[0],
       status: 'Pending',
-      queuePosition: bookingFaculty.waitingCount + 1,
-      estimatedWaitMinutes: (bookingFaculty.waitingCount + 1) * 15,
       createdTimestamp: 'Just Now',
     };
 
     setAppointments([newApp, ...appointments]);
-
-    // Update faculty waiting count
-    setFacultyList((prev) =>
-      prev.map((f) => (f.id === bookingFaculty.id ? { ...f, waitingCount: f.waitingCount + 1 } : f))
-    );
 
     setBookingFaculty(null);
   };
@@ -390,7 +383,7 @@ export const CommunicationDashboard: React.FC = () => {
 
                           <div className="flex items-center justify-between text-[10px] text-slate-400 pt-2 border-t border-slate-900">
                             <div>Office Hours: <span className="text-slate-200">{fac.officeHours}</span></div>
-                            <div>Waiting Queue: <span className="text-orange-400 font-bold">{fac.waitingCount} Students</span></div>
+                            <div>Next Available: <span className="text-orange-400 font-bold">{fac.nextAvailableTime}</span></div>
                           </div>
                         </div>
                       );
@@ -426,7 +419,7 @@ export const CommunicationDashboard: React.FC = () => {
                             >
                               Appointment Status: {app.status === 'Accepted' ? 'Approved' : app.status}
                             </span>
-                            <span className="text-xs font-extrabold text-orange-400">Position #{app.queuePosition || 1} in Queue</span>
+                            <span className="text-xs font-extrabold text-orange-400">{app.createdTimestamp}</span>
                           </div>
 
                           <div className="space-y-1.5 text-xs">
@@ -843,7 +836,7 @@ export const CommunicationDashboard: React.FC = () => {
               </div>
 
               <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-300 text-[11px]">
-                ⚡ Note: You will be placed at position #{bookingFaculty.waitingCount + 1} in Dr. Rao's smart queue.
+                ⚡ Your appointment request will be sent to {bookingFaculty.name} — awaiting HOD approval.
               </div>
 
               <button
