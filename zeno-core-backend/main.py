@@ -79,6 +79,89 @@ class QueryRequest(BaseModel):
     prompt: str
     user: Optional[Dict[str, Any]] = None
 
+class ChatPayload(BaseModel):
+    message: str
+    inputMode: Optional[str] = "text"
+    studentId: Optional[str] = None
+    conversationId: Optional[str] = None
+    user: Optional[Dict[str, Any]] = None
+
+@app.post("/api/v1/chat")
+@app.post("/api/chat")
+async def handle_central_chat(payload: ChatPayload):
+    msg = (payload.message or "").lower()
+    user = payload.user or {}
+    
+    # 1. CAMPUS GPS
+    if any(k in msg for k in ["where is", "take me to", "how do i reach", "ece-204", "csm block", "it block", "admin block"]):
+        return {
+            "success": True,
+            "agent": "campus_gps",
+            "agentBadgeLabel": "CAMPUS GPS AGENT ACTIVATED",
+            "confidence": 0.96,
+            "markdown": "📍 **Spatial Campus GPS Navigation**\n\nThis voice agent is active. Activating Campus GPS Agent...\n\n• **Target Location:** ECE Block — Room ECE-204 (Floor 1)\n• **Shortest Route (Dijkstra):** 280m walking distance (~4 mins walking time).",
+            "gisTarget": {"building": "ECE Block", "floor": 1, "room": "ECE-204"}
+        }
+
+    # 2. PLACEMENT
+    if any(k in msg for k in ["resume", "ats", "placement", "job", "internship", "microsoft", "google"]):
+        return {
+            "success": True,
+            "agent": "placement",
+            "agentBadgeLabel": "PLACEMENT AGENT ACTIVATED",
+            "confidence": 0.95,
+            "markdown": "🎓 **Placement & Skill Engine**\n\nThis voice agent is active. Activating Placement Agent...\n\n• **ATS Score Analysis:** **87/100** (Tier-1 Ready)\n• **Target Readiness:** 85% Match for SDE Roles\n• **Recommended Sheet:** [Striver's A2Z DSA Sheet](https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/)"
+        }
+
+    # 3. ACADEMIC
+    if any(k in msg for k in ["dbms", "recursion", "notes", "pdf", "syllabus", "assignment", "bunk", "attendance"]):
+        return {
+            "success": True,
+            "agent": "academic",
+            "agentBadgeLabel": "ACADEMIC AGENT ACTIVATED",
+            "confidence": 0.95,
+            "markdown": "📚 **Academic Intelligence Enclave**\n\nThis voice agent is active. Activating Academic Agent...\n\n• **Subject Query:** Coursework & Study Material\n• **Academic Telemetry:** Algorithms attendance is **88%**."
+        }
+
+    # 4. COMMUNICATION
+    if any(k in msg for k in ["english", "communication", "group discussion", "grammar", "public speaking"]):
+        return {
+            "success": True,
+            "agent": "communication",
+            "agentBadgeLabel": "COMMUNICATION AGENT ACTIVATED",
+            "confidence": 0.93,
+            "markdown": "🗣️ **Communication & HR Skill Development**\n\nThis voice agent is active. Activating Communication Agent...\n\n• **Speaking Practice:** 1-on-1 Interactive HR Interview & Discussion Mode"
+        }
+
+    # 5. SERVICE
+    if any(k in msg for k in ["bonafide", "certificate", "fee", "hostel", "maintenance", "shuttle"]):
+        return {
+            "success": True,
+            "agent": "service",
+            "agentBadgeLabel": "SERVICE AGENT ACTIVATED",
+            "confidence": 0.94,
+            "markdown": "🏛️ **Student Services & Operational Support**\n\nThis voice agent is active. Activating Service Agent...\n\n• **Bonafide Certificates:** Submit digital application at Student Cell Counter 4.\n• **Hostel Maintenance:** AC & Plumbing repair ticket logged (#SRV-8821)."
+        }
+
+    # 6. EVENT
+    if any(k in msg for k in ["hackathon", "fest", "event", "workshop", "seminar"]):
+        return {
+            "success": True,
+            "agent": "event",
+            "agentBadgeLabel": "EVENT AGENT ACTIVATED",
+            "confidence": 0.94,
+            "markdown": "🎉 **Campus Events & Hackathon Radar**\n\nThis voice agent is active. Activating Events Agent...\n\n• **Annual Campus Hackathon:** Scheduled for this Friday @ 10:00 AM in SAC Hall."
+        }
+
+    # DEFAULT GENERAL
+    return {
+        "success": True,
+        "agent": "general",
+        "agentBadgeLabel": "ZENO GENERAL ASSISTANT",
+        "confidence": 0.85,
+        "markdown": "✦ **Zeno General Assistant**\n\nI am Zeno, your central multi-agent campus intelligence system. How can I assist you today?"
+    }
+
 # Dynamic Intent Routing Endpoint at /api/v1/query (with /query and /api/query route aliases)
 @app.post("/api/v1/query")
 @app.post("/query")

@@ -8,16 +8,17 @@ interface AgentTopologyProps {
 
 const SUB_AGENTS: Array<{
   id: string;
-  domain: AgentDomain;
+  domain: string;
   label: string;
   model: string;
   accent: string;
 }> = [
-  { id: 'agent-academic-gis', domain: 'ACADEMIC_GIS', label: 'ACADEMIC_GIS', model: 'Gemini-1.5-Pro', accent: '#00F0FF' },
-  { id: 'agent-academic-study', domain: 'ACADEMIC_STUDY_ENCLAVE', label: 'STUDY_ENCLAVE', model: 'Gemini-1.5-Pro/RAG', accent: '#A855F7' },
-  { id: 'agent-placement-pipe', domain: 'PLACEMENT_PIPELINE', label: 'PLACEMENT_PIPELINE', model: 'Claude-3.5-Sonnet', accent: '#10B981' },
-  { id: 'agent-events-router', domain: 'EVENTS_ROUTER', label: 'EVENTS_ROUTER', model: 'GPT-4o-Mini', accent: '#F59E0B' },
-  { id: 'agent-gov-router', domain: 'GOVERNANCE_ROUTER', label: 'GOVERNANCE_ROUTER', model: 'Mistral-Large', accent: '#F43F5E' },
+  { id: 'agent-academic', domain: 'academic', label: 'ACADEMIC', model: 'Gemini-1.5-Pro', accent: '#00F0FF' },
+  { id: 'agent-placement', domain: 'placement', label: 'PLACEMENT', model: 'Claude-3.5-Sonnet', accent: '#10B981' },
+  { id: 'agent-communication', domain: 'communication', label: 'COMMUNICATION', model: 'WebSpeech/TTS', accent: '#F97316' },
+  { id: 'agent-service', domain: 'service', label: 'SERVICE', model: 'SLA Router', accent: '#F43F5E' },
+  { id: 'agent-event', domain: 'event', label: 'EVENT', model: 'GPT-4o-Mini', accent: '#F59E0B' },
+  { id: 'agent-gps', domain: 'campus_gps', label: 'CAMPUS_GPS', model: 'Dijkstra 3D', accent: '#A855F7' },
 ];
 
 export const AgentTopologyVisualizer: React.FC<AgentTopologyProps> = ({ activeDomain = 'ACADEMIC_GIS' }) => {

@@ -31,6 +31,7 @@ import {
 } from '../data/mockData';
 import { classifyUserIntent } from '../lib/intentClassifier';
 import { queryZenoAgent, executeClientEnclaveFallback } from '../services/aiRoutingService';
+import { executeCentralOrchestrator } from '../services/zenoOrchestrator';
 import confetti from 'canvas-confetti';
 
 export const COMPANY_DRAFTS: Record<string, PlacementApplicationDraft> = {
@@ -583,67 +584,50 @@ Try typing a query about **Attendance**, **Placement Drives**, **Events/Hackatho
     };
 
     try {
-      const agentRes = await queryZenoAgent(text, userProfile);
+      const orchestratorRes = await executeCentralOrchestrator({
+        message: text,
+        inputMode: 'text',
+        userProfile,
+      });
 
-      if (agentRes.gisTarget && typeof window !== 'undefined') {
+      if (orchestratorRes.gisTarget && typeof window !== 'undefined') {
         window.dispatchEvent(
           new CustomEvent('zeno:spatial_gis_trigger', {
             detail: {
-              building: agentRes.gisTarget.building,
-              floor: String(agentRes.gisTarget.floor),
-              room_number: agentRes.gisTarget.room,
+              building: orchestratorRes.gisTarget.building,
+              floor: String(orchestratorRes.gisTarget.floor),
+              room_number: orchestratorRes.gisTarget.room,
               lab_code: 'GIS-TARGET',
-              lab_name: agentRes.gisTarget.room,
+              lab_name: orchestratorRes.gisTarget.room,
             },
           })
         );
       }
 
       const intent = classifyUserIntent(text);
-      intent.domain = agentRes.agent as AgentDomain;
-      intent.agentName = agentRes.agent;
-      intent.summary = agentRes.markdown || intent.summary;
 
       setMessages((prev) => [
         ...prev,
         {
           id: `agt-${Date.now()}`,
           sender: 'agent',
-          text: agentRes.markdown || intent.summary,
+          text: orchestratorRes.markdown,
+          agentBadgeLabel: orchestratorRes.agentBadgeLabel,
           intentResult: intent,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          timestamp: orchestratorRes.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
     } catch (e) {
-      console.warn('[ZENO CONTEXT FALLBACK]', e);
+      console.warn('[ZENO ORCHESTRATOR FALLBACK]', e);
       const fallback = executeClientEnclaveFallback(text, userProfile);
-
-      if (fallback.gisTarget && typeof window !== 'undefined') {
-        window.dispatchEvent(
-          new CustomEvent('zeno:spatial_gis_trigger', {
-            detail: {
-              building: fallback.gisTarget.building,
-              floor: String(fallback.gisTarget.floor),
-              room_number: fallback.gisTarget.room,
-              lab_code: 'GIS-TARGET',
-              lab_name: fallback.gisTarget.room,
-            },
-          })
-        );
-      }
-
-      const intent = classifyUserIntent(text);
-      intent.domain = fallback.agent as AgentDomain;
-      intent.agentName = fallback.agent;
-      intent.summary = fallback.markdown;
 
       setMessages((prev) => [
         ...prev,
         {
           id: `agt-${Date.now()}`,
           sender: 'agent',
-          text: fallback.markdown,
-          intentResult: intent,
+          text: fallback.markdown || 'Zeno couldn\'t complete that request right now. Please try again.',
+          agentBadgeLabel: 'ZENO GENERAL ASSISTANT',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);

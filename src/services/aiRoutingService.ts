@@ -19,135 +19,62 @@ export interface VoiceAgentResponse {
   uiPayload?: Record<string, any>;
 }
 
+import { executeCentralOrchestrator } from './zenoOrchestrator';
+
 export function dispatchVoiceQuery(prompt: string): VoiceAgentResponse {
   const q = prompt.toLowerCase();
 
-  // 1. Academic Agent
-  if (
-    q.includes('lecture') ||
-    q.includes('class') ||
-    q.includes('algorithms') ||
-    q.includes('grade') ||
-    q.includes('assignment') ||
-    q.includes('course') ||
-    q.includes('notes') ||
-    q.includes('timetable') ||
-    q.includes('syllabus') ||
-    q.includes('attendance')
-  ) {
-    return {
-      agentName: 'Academic Agent',
-      speechText:
-        'This voice agent is active. Activating Academic Agent... You have your Algorithms lecture today at 2:00 PM in Lecture Hall 3B with Professor Sharma. Your overall attendance is currently at 88%.',
-      uiPayload: { subject: 'Algorithms', time: '2:00 PM', room: 'LH-3B' },
-    };
-  }
-
-  // 2. Placement Agent
-  if (
-    q.includes('internship') ||
-    q.includes('placement') ||
-    q.includes('job') ||
-    q.includes('resume') ||
-    q.includes('drive') ||
-    q.includes('ats') ||
-    q.includes('skill') ||
-    q.includes('dsa')
-  ) {
+  if (q.includes('internship') || q.includes('placement') || q.includes('resume') || q.includes('ats') || q.includes('job')) {
     return {
       agentName: 'Placement Agent',
-      speechText:
-        'This voice agent is active. Activating Placement Agent... Two new software engineering internships were posted yesterday by TechCorp and Innovate Labs. The application deadline is this Friday.',
+      speechText: 'This voice agent is active. Activating Placement Agent... Two new software engineering internships were posted yesterday by TechCorp and Innovate Labs.',
       uiPayload: { drives: ['TechCorp', 'Innovate Labs'], deadline: 'Friday' },
     };
   }
-
-  // 3. Service Agent
-  if (
-    q.includes('ac') ||
-    q.includes('maintenance') ||
-    q.includes('hostel') ||
-    q.includes('canteen') ||
-    q.includes('shuttle') ||
-    q.includes('repair') ||
-    q.includes('helpdesk') ||
-    q.includes('cafeteria')
-  ) {
+  if (q.includes('ac') || q.includes('maintenance') || q.includes('hostel') || q.includes('canteen') || q.includes('bonafide')) {
     return {
       agentName: 'Service Agent',
-      speechText:
-        "This voice agent is active. Activating Service Agent... I've logged a maintenance ticket for the hostel AC unit in Room 204B. A technician will inspect it between 3:00 PM and 5:00 PM today.",
+      speechText: "This voice agent is active. Activating Service Agent... I've logged a maintenance ticket for the hostel AC unit in Room 204B.",
       uiPayload: { ticketId: 'SRV-8821', status: 'DISPATCHED' },
     };
   }
-
-  // 4. Events Agent
-  if (
-    q.includes('hackathon') ||
-    q.includes('event') ||
-    q.includes('fest') ||
-    q.includes('club') ||
-    q.includes('workshop') ||
-    q.includes('sports')
-  ) {
+  if (q.includes('hackathon') || q.includes('event') || q.includes('fest') || q.includes('workshop')) {
     return {
       agentName: 'Events Agent',
-      speechText:
-        'This voice agent is active. Activating Events Agent... The Annual Campus Hackathon is scheduled for October 12th at the Student Activity Center. Registration opens tomorrow morning.',
-      uiPayload: { event: 'Campus Hackathon', date: 'Oct 12', location: 'SAC' },
+      speechText: 'This voice agent is active. Activating Events Agent... The Annual Campus Hackathon is scheduled for October 12th at the SAC Hall.',
+      uiPayload: { event: 'Campus Hackathon', date: 'Oct 12' },
     };
   }
 
-  // 5. Communication Agent (Fallback / General)
   return {
     agentName: 'Communication Agent',
-    speechText:
-      'This voice agent is active. Activating Communication Agent... There is one high-priority alert: the main library will close early today at 6:00 PM for maintenance.',
-    uiPayload: { alertType: 'HIGH_PRIORITY', systemNotice: 'Library early closure' },
+    speechText: 'This voice agent is active. Activating Communication Agent... There is one high-priority alert: the main library will close early today at 6:00 PM.',
+    uiPayload: { alertType: 'HIGH_PRIORITY' },
   };
 }
 
 export async function sendQueryToBackend(promptText: string, userPayload: any): Promise<AgentResponse> {
-  const BASE_URL = PRIMARY_BACKEND_URL.replace(/\/$/, '');
-  const response = await fetch(`${BASE_URL}/api/v1/query`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify({ prompt: promptText, user: userPayload }),
+  const orchestratorResult = await executeCentralOrchestrator({
+    message: promptText,
+    inputMode: 'text',
+    userProfile: userPayload,
   });
 
-  if (!response.ok) {
-    throw new Error(`Server returned ${response.status}`);
-  }
-
-  return await response.json();
+  return {
+    agent:
+      orchestratorResult.agent === 'placement'
+        ? 'PLACEMENT_PIPELINE'
+        : orchestratorResult.agent === 'academic'
+        ? 'ACADEMIC_STUDY_ENCLAVE'
+        : 'ACADEMIC_GIS',
+    markdown: orchestratorResult.markdown,
+    gisTarget: orchestratorResult.gisTarget,
+    telemetry: { status: 'ONLINE', confidence: orchestratorResult.confidence, badge: orchestratorResult.agentBadgeLabel },
+  };
 }
 
 export async function queryZenoAgent(prompt: string, userProfile: any): Promise<AgentResponse> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500); // 3.5s connection threshold
-
-    const response = await fetch(`${PRIMARY_BACKEND_URL.replace(/\/$/, '')}/api/v1/query`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({ prompt, user: userProfile }),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    return await response.json();
-  } catch (error) {
-    console.warn(`[ZENO NETWORK FALLBACK] Backend unreachable (${PRIMARY_BACKEND_URL}). Serving client-side agent enclave state.`);
-    return executeClientEnclaveFallback(prompt, userProfile);
-  }
+  return await sendQueryToBackend(prompt, userProfile);
 }
 
 export function executeClientEnclaveFallback(prompt: string, user: any): AgentResponse {

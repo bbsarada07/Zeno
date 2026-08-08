@@ -88,10 +88,10 @@ export const ChatCanvas: React.FC = () => {
           return (
             <div key={msg.id} className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} space-y-1`}>
               {/* Agent Domain Badge */}
-              {!isUser && displayBadge && (
-                <div className="flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-slate-900 border border-cyan-500/40 text-[10px] font-mono font-bold text-cyan-400 shadow-[0_0_10px_rgba(0,240,255,0.2)]">
-                  <Sparkles className="w-3 h-3 text-cyan-400" />
-                  <span>{displayBadge}</span>
+              {!isUser && (
+                <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-slate-900 border border-cyan-500/40 text-[11px] font-mono font-extrabold text-cyan-400 shadow-[0_0_15px_rgba(0,240,255,0.25)]">
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+                  <span>{(msg as any).agentBadgeLabel || displayBadge || '✦ ZENO GENERAL ASSISTANT'}</span>
                 </div>
               )}
 
