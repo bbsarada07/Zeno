@@ -22,7 +22,7 @@ const SUB_AGENT_NODES: AgentNodeData[] = [
     latency: '0.12ms',
     status: 'ACTIVE',
     description: 'ATS Scoring, Career Twin & Recruiter Feedback',
-    roles: ['student', 'hod'],
+    roles: ['student', 'faculty', 'hod'],
     angle: (0 * Math.PI) / 3,
     distanceRatio: 0.36,
   },
@@ -44,7 +44,7 @@ const SUB_AGENT_NODES: AgentNodeData[] = [
     latency: '0.19ms',
     status: 'ACTIVE',
     description: 'Campus Hackathons, Workshop Registrations & Grants',
-    roles: ['hod'],
+    roles: ['student', 'faculty', 'hod'],
     angle: (2 * Math.PI) / 3,
     distanceRatio: 0.36,
   },
@@ -55,7 +55,7 @@ const SUB_AGENT_NODES: AgentNodeData[] = [
     latency: '0.14ms',
     status: 'ACTIVE',
     description: 'Anonymous Faculty Petitions & Department Escalate',
-    roles: ['faculty', 'hod'],
+    roles: ['student', 'faculty', 'hod'],
     angle: (3 * Math.PI) / 3,
     distanceRatio: 0.38,
   },
@@ -66,7 +66,7 @@ const SUB_AGENT_NODES: AgentNodeData[] = [
     latency: '0.10ms',
     status: 'ACTIVE',
     description: 'Indoor Floor Maps, Class Navigation & Lab Routing',
-    roles: ['student', 'hod'],
+    roles: ['student', 'faculty', 'hod'],
     angle: (4 * Math.PI) / 3,
     distanceRatio: 0.36,
   },
@@ -384,12 +384,23 @@ export const AuthNeuralCanvas: React.FC<AuthNeuralCanvasProps> = ({
         </div>
       )}
 
-      {/* Top Left Header Badge */}
-      <div className="relative z-20 p-6 flex items-center space-x-3">
-        <div className="px-3 py-1.5 rounded-full bg-slate-900/80 border border-slate-800 text-xs font-mono font-medium text-slate-300 backdrop-blur-md flex items-center space-x-2 shadow-lg">
-          <Cpu className="w-3.5 h-3.5" style={{ color: accentColor }} />
-          <span>ZENO MULTI-AGENT TOPOLOGY ENGINE</span>
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+      {/* Top Left Header Badge & Branding */}
+      <div className="relative z-20 p-6 flex flex-col space-y-2">
+        <div className="flex items-center space-x-3">
+          <div className="px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-xs font-mono font-medium text-slate-300 backdrop-blur-md flex items-center space-x-2 shadow-lg">
+            <Cpu className="w-3.5 h-3.5" style={{ color: accentColor }} />
+            <span>ZENO MULTI-AGENT TOPOLOGY ENGINE</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          </div>
+        </div>
+
+        <div className="pl-1 space-y-0.5 font-mono">
+          <div className="text-2xl sm:text-3xl font-extrabold tracking-wider uppercase text-cyan-400 flex items-center space-x-2">
+            <span>ZENO</span>
+          </div>
+          <p className="text-xs font-normal text-slate-300 leading-snug">
+            The CampusOS for Student Success
+          </p>
         </div>
       </div>
 
