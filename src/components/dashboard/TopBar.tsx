@@ -24,6 +24,7 @@ import { useApp } from '../../context/AppContext';
 import { INSTITUTIONAL_TENANTS } from '../../data/mockData';
 import { KernelStatus } from './KernelStatus';
 import { VoiceAssistant } from '../VoiceAssistant';
+import { VoiceAgentModal } from '../VoiceAgentModal';
 import type { UserRole, NavigationTab } from '../../types';
 
 export const TopBar: React.FC = () => {
@@ -41,6 +42,7 @@ export const TopBar: React.FC = () => {
     setActiveTab,
     unreadCount,
     setIsNotificationDrawerOpen,
+    sendMessage,
   } = useApp();
 
   const [isTenantDropdownOpen, setIsTenantDropdownOpen] = useState(false);
@@ -265,7 +267,11 @@ export const TopBar: React.FC = () => {
         </button>
 
         {/* Voice Assistant Modal */}
-        <VoiceAssistant isOpen={isVoiceModalOpen} onClose={() => setIsVoiceModalOpen(false)} />
+        <VoiceAgentModal
+          isOpen={isVoiceModalOpen}
+          onClose={() => setIsVoiceModalOpen(false)}
+          onDispatch={(res) => sendMessage(res.spokenText)}
+        />
       </div>
 
       {/* Mobile Animated Slide-Out Hamburger Navigation Menu (< 768px) */}

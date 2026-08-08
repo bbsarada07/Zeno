@@ -151,4 +151,6 @@ export { searchCampusLocations, findNearestFacility, calculateDistanceMeters } f
 export type { CampusLocation } from '../services/spatialSearchService';
 export { calculateCampusRoute } from '../services/campusRouter';
 export type { RouteResult, RouteStep } from '../services/campusRouter';
+export { processVoiceDispatch } from '../services/voiceDispatcherService';
+export type { VoiceDispatchResponse } from '../services/voiceDispatcherService';
 
