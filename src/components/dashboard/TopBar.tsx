@@ -230,29 +230,29 @@ export const TopBar: React.FC = () => {
         <button
           onClick={() => setIsVoiceModalOpen(true)}
           title="Open Voice Intelligence Dispatcher"
-          className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-400 hover:border-purple-500/60 transition-all flex items-center justify-center relative shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+          className="w-10 h-10 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 text-purple-300 hover:border-purple-400 transition-all flex items-center justify-center relative flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]"
         >
-          <Mic className="w-4 h-4 animate-pulse" />
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-purple-400 rounded-full animate-ping" />
+          <Mic className="w-5 h-5 animate-pulse flex-shrink-0" />
+          <span className="absolute -top-1 -right-1 w-3 h-3 bg-purple-400 rounded-full animate-ping flex-shrink-0" />
         </button>
 
         {/* Theme Toggle Button */}
         <button
           onClick={toggleTheme}
           title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-          className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-950/60 dark:bg-slate-950/60 html-light:bg-slate-200 border border-slate-800 dark:border-slate-800 html-light:border-slate-300 hover:border-cyan-500/50 transition-all flex items-center justify-center text-slate-200 dark:text-slate-200 html-light:text-slate-800"
+          className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 hover:border-cyan-400 transition-all flex items-center justify-center text-slate-100 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
         >
-          {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-cyan-600" />}
+          {theme === 'dark' ? <Sun className="w-5 h-5 text-amber-300 flex-shrink-0" /> : <Moon className="w-5 h-5 text-cyan-400 flex-shrink-0" />}
         </button>
 
         {/* Notifications Icon */}
         <button
           onClick={() => setIsNotificationDrawerOpen(true)}
-          className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-950/60 dark:bg-slate-950/60 html-light:bg-slate-200 border border-slate-800 dark:border-slate-800 html-light:border-slate-300 hover:border-cyan-500/50 transition-all flex items-center justify-center text-slate-300 dark:text-slate-300 html-light:text-slate-800"
+          className="relative w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 hover:border-cyan-400 transition-all flex items-center justify-center text-slate-100 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
         >
-          <Bell className="w-4 h-4" />
+          <Bell className="w-5 h-5 flex-shrink-0" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-cyan-500 text-slate-950 text-[10px] font-bold rounded-full flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-cyan-400 text-slate-950 text-xs font-extrabold rounded-full flex items-center justify-center flex-shrink-0">
               {unreadCount}
             </span>
           )}
@@ -262,9 +262,9 @@ export const TopBar: React.FC = () => {
         <button
           onClick={logoutSession}
           title="Safe Logout Session"
-          className="px-2.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs sm:text-sm font-bold transition-all flex items-center space-x-1.5"
+          className="px-3 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-sm font-semibold transition-all flex items-center space-x-2 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
         >
-          <LogOut className="w-4 h-4" />
+          <LogOut className="w-4 h-4 flex-shrink-0" />
           <span className="hidden sm:inline">Logout</span>
         </button>
 

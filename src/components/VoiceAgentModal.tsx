@@ -267,29 +267,29 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
           className="w-full max-w-lg zeno-glass-card border border-purple-500/40 rounded-3xl shadow-[0_0_80px_rgba(168,85,247,0.3)] overflow-hidden text-slate-100 flex flex-col"
         >
           {/* Top Bar Header */}
-          <div className="p-5 border-b border-slate-800 bg-slate-950/70 flex items-center justify-between">
+          <div className="p-5 border-b border-slate-800 bg-slate-950/90 flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
-                <Radio className="w-5 h-5 animate-pulse" />
+              <div className="w-10 h-10 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 flex-shrink-0">
+                <Radio className="w-5 h-5 animate-pulse flex-shrink-0" />
               </div>
               <div>
                 <div className="flex items-center space-x-2">
-                  <h3 className="font-extrabold text-sm text-white">Campus Voice Intelligence Dispatcher</h3>
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                  <h3 className="font-extrabold text-base text-white">Campus Voice Intelligence Dispatcher</h3>
+                  <span className="px-2 py-0.5 rounded-full text-xs font-extrabold bg-purple-500/20 text-purple-300 border border-purple-500/40 flex-shrink-0">
                     5-AGENT ENCLAVE
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-0.5">Auto-close on silence • MediaStream track teardown • TTS protocol</p>
+                <p className="text-xs text-zinc-300 mt-0.5 font-medium">Auto-close on silence • MediaStream track teardown • TTS protocol</p>
               </div>
             </div>
 
             {/* Explicit Close X Button */}
             <button
               onClick={handleFullExit}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+              className="p-2 rounded-xl text-slate-200 hover:text-white hover:bg-slate-800 transition-all flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
               title="Close Voice Assistant (Esc)"
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6 flex-shrink-0" />
             </button>
           </div>
 
