@@ -232,4 +232,13 @@ Our Smart Campus Multi-Agent AI System transforms campus operations by:
 # 🏁 Conclusion
 
 The Smart Campus Multi-Agent AI System demonstrates how autonomous AI agents can collaboratively solve real-world campus challenges. By integrating Academic, Placement, Events, Communication, and Student Services into one intelligent ecosystem, the platform delivers a unified, scalable, and user-centric solution that aligns with the AgentX vision of moving beyond traditional chatbots toward intelligent, autonomous campus assistants. 
-````
+
+---
+
+# Deployed Links
+
+Frontend : https://zeno-gules.vercel.app?_vercel_share=1Nuuzls2YjzscNk3BXCHHHYuhus77Y6g
+
+Backend : https://zeno-k3k0.onrender.com/
+
+---
