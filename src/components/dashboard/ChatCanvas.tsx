@@ -102,7 +102,52 @@ export const ChatCanvas: React.FC = () => {
                     : 'bg-slate-950/80 dark:bg-slate-950/80 html-light:bg-white border border-slate-800 dark:border-slate-800 html-light:border-slate-200 text-slate-100 dark:text-slate-100 html-light:text-slate-900 rounded-tl-none space-y-3'
                 }`}
               >
-                <div className="whitespace-pre-wrap font-sans">{msg.text}</div>
+                <div className="font-sans">
+                  {msg.text.split('\n').map((line, lIdx) => {
+                    const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g;
+                    let match;
+                    const elements = [];
+                    let lastIndex = 0;
+
+                    while ((match = linkRegex.exec(line)) !== null) {
+                      const [fullMatch, label, url] = match;
+                      const matchIndex = match.index;
+
+                      if (matchIndex > lastIndex) {
+                        elements.push(line.substring(lastIndex, matchIndex));
+                      }
+
+                      if (url.startsWith('http://') || url.startsWith('https://')) {
+                        elements.push(
+                          <a
+                            key={`${lIdx}-${matchIndex}`}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/50 text-cyan-300 hover:text-white font-extrabold text-xs transition-all shadow-[0_0_12px_rgba(0,240,255,0.3)] my-1 mx-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+                          >
+                            <span>{label}</span>
+                            <ExternalLink className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
+                          </a>
+                        );
+                      } else {
+                        elements.push(fullMatch);
+                      }
+
+                      lastIndex = matchIndex + fullMatch.length;
+                    }
+
+                    if (lastIndex < line.length) {
+                      elements.push(line.substring(lastIndex));
+                    }
+
+                    return (
+                      <div key={lIdx} className="min-h-[1.25rem]">
+                        {elements.length > 0 ? elements : line}
+                      </div>
+                    );
+                  })}
+                </div>
 
                 {/* DYNAMIC COMPONENT 1: Structured Event Card */}
                 {!isUser && intent?.eventCard && (

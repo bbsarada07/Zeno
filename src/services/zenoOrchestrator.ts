@@ -3,6 +3,8 @@
  * Single Source of Truth for Voice & Text Queries
  */
 
+import { searchResourceCatalog, formatResourceMarkdownResponse } from './resourceService';
+
 export type AgentType =
   | 'academic'
   | 'placement'
@@ -124,7 +126,7 @@ export function classifyUserIntent(query: string): IntentClassification {
     };
   }
 
-  // 3. ACADEMIC AGENT (Subjects, Notes, Syllabus, Exams, Bunk, Quizzes)
+  // 3. ACADEMIC AGENT (Subjects, Notes, Syllabus, Exams, Bunk, Quizzes, Programming Topics)
   if (
     q.includes('dbms') ||
     q.includes('recursion') ||
@@ -136,14 +138,23 @@ export function classifyUserIntent(query: string): IntentClassification {
     q.includes('quiz') ||
     q.includes('study plan') ||
     q.includes('bunk') ||
-    q.includes('attendance percentage') ||
-    q.includes('algorithms')
+    q.includes('attendance') ||
+    q.includes('algorithms') ||
+    q.includes('python') ||
+    q.includes('javascript') ||
+    q.includes('react') ||
+    q.includes('node') ||
+    q.includes('machine learning') ||
+    q.includes('resources') ||
+    q.includes('learn') ||
+    q.includes('tutorial') ||
+    q.includes('course')
   ) {
     return {
       intent: 'academic',
       primaryAgent: 'academic',
       confidence: 0.95,
-      reason: 'Academic coursework, study material, or attendance calculation',
+      reason: 'Academic coursework, study material, programming resources, or attendance calculation',
       isMultiIntent: false,
       needsClarification: false,
     };
@@ -298,29 +309,45 @@ export async function executeCentralOrchestrator(
 
     // SPECIALIZED SINGLE-AGENT ROUTING
     switch (classification.primaryAgent) {
-      case 'academic':
+      case 'academic': {
+        const foundResources = searchResourceCatalog(req.message, 'academic');
+        const customMarkdown = formatResourceMarkdownResponse(
+          'ACADEMIC AGENT ACTIVATED',
+          '📚 Academic Learning Resources',
+          'This voice agent is active. Activating Academic Agent... I have selected top verified study materials for your query:',
+          foundResources
+        );
         return {
           success: true,
           agent: 'academic',
           agentBadgeLabel: 'ACADEMIC AGENT ACTIVATED',
           confidence: classification.confidence,
-          markdown: `📚 **Academic Intelligence Enclave**\n\nThis voice agent is active. Activating Academic Agent...\n\n• **Subject Query:** DBMS & Data Structures Coursework\n• **Academic Telemetry:** Algorithms attendance is **88%** (Eligible for all internal exams).\n• **Study Material:** [roadmap.sh Computer Science Guide](https://roadmap.sh/computer-science) | [MDN Web Docs](https://developer.mozilla.org/)\n\n\`\`\`mermaid\nflowchart TD\n    A["1. DBMS Normalization (1NF to 3NF)"] --> B["2. Indexing & B-Trees"]\n    B --> C["3. Transaction ACID Properties"]\n\`\`\``,
-          speechText: 'This voice agent is active. Activating Academic Agent... Your overall attendance is 88%. I have retrieved your DBMS study materials and normalization roadmap.',
+          markdown: customMarkdown,
+          speechText: 'This voice agent is active. Activating Academic Agent... I found top verified learning resources for your topic.',
           timestamp,
           conversationId: convId,
         };
+      }
 
-      case 'placement':
+      case 'placement': {
+        const foundResources = searchResourceCatalog(req.message, 'placement');
+        const customMarkdown = formatResourceMarkdownResponse(
+          'PLACEMENT AGENT ACTIVATED',
+          '💼 Placement & Career Portals',
+          'This voice agent is active. Activating Placement Agent... I found top tech internship and job portals matching your profile:',
+          foundResources
+        );
         return {
           success: true,
           agent: 'placement',
           agentBadgeLabel: 'PLACEMENT AGENT ACTIVATED',
           confidence: classification.confidence,
-          markdown: `🎓 **Placement & Skill Engine**\n\nThis voice agent is active. Activating Placement Agent...\n\n• **ATS Score Analysis:** **87/100** (Tier-1 Ready)\n• **Target Readiness:** 85% Match for SDE Roles\n• **Recommended Sheets:** [LeetCode Problem Set](https://leetcode.com/problemset/) | [Striver's A2Z DSA Sheet](https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/)\n\n\`\`\`mermaid\nflowchart TD\n    Step1["1. Resume ATS Check (87/100)"] --> Step2["2. DSA Trees & Graphs Gap"]\n    Step2 --> Step3["3. System Design Caching"]\n    Step3 --> Step4["4. Mock Recruiter Defense"]\n\`\`\``,
-          speechText: 'This voice agent is active. Activating Placement Agent... Your ATS score is 87/100. Two new software engineering drives were posted yesterday by TechCorp and Innovate Labs.',
+          markdown: customMarkdown,
+          speechText: 'This voice agent is active. Activating Placement Agent... I have selected top verified job and internship portals for you.',
           timestamp,
           conversationId: convId,
         };
+      }
 
       case 'communication':
         return {
@@ -328,7 +355,7 @@ export async function executeCentralOrchestrator(
           agent: 'communication',
           agentBadgeLabel: 'COMMUNICATION AGENT ACTIVATED',
           confidence: classification.confidence,
-          markdown: `🗣️ **Communication & HR Skill Development**\n\nThis voice agent is active. Activating Communication Agent...\n\n• **Speaking Practice:** 1-on-1 Interactive HR Interview & Discussion Mode\n• **Evaluation Focus:** Clarity, Structural Organization, & Professional Grammar\n• **Tips:** Speak concisely in under 40 words during voice prompts and ground technical answers with metrics.`,
+          markdown: `🗣️ **Communication & HR Skill Development**\n\nThis voice agent is active. Activating Communication Agent...\n\n• **Speaking Practice:** 1-on-1 Interactive HR Interview & Discussion Mode\n• **Evaluation Focus:** Clarity, Structural Organization, & Professional Grammar\n• **Practice Guides:** [MDN Web Docs](https://developer.mozilla.org/) | [freeCodeCamp Courses](https://www.freecodecamp.org/)\n\n### 🔗 Verified Sources\n• **freeCodeCamp:** [ Open Source ↗ ](https://www.freecodecamp.org/)`,
           speechText: 'This voice agent is active. Activating Communication Agent... I am ready to evaluate your HR interview communication skills and group discussion fluency.',
           timestamp,
           conversationId: convId,
@@ -340,23 +367,31 @@ export async function executeCentralOrchestrator(
           agent: 'service',
           agentBadgeLabel: 'SERVICE AGENT ACTIVATED',
           confidence: classification.confidence,
-          markdown: `🏛️ **Student Services & Operational Support**\n\nThis voice agent is active. Activating Service Agent...\n\n• **Bonafide Certificates:** Submit digital application at Student Cell Counter 4 or download pre-signed e-copy.\n• **Hostel Maintenance:** AC & Plumbing repair ticket logged (#SRV-8821).\n• **Operating Timings:** Main Cafeteria is open today until **10:00 PM**; Central Library closes at **06:00 PM** for maintenance.`,
+          markdown: `🏛️ **Student Services & Operational Support**\n\nThis voice agent is active. Activating Service Agent...\n\n• **Bonafide Certificates:** Submit digital application at Student Cell Counter 4 or download pre-signed e-copy.\n• **Hostel Maintenance:** AC & Plumbing repair ticket logged (#SRV-8821).\n• **Operating Timings:** Main Cafeteria is open today until **10:00 PM**; Central Library closes at **06:00 PM** for maintenance.\n\n### 🔗 Service Portals\n• **SWAYAM Central:** [ Open Portal ↗ ](https://swayam.gov.in/search_courses)`,
           speechText: 'This voice agent is active. Activating Service Agent... You can download bonafide certificates directly from the Student Cell portal, and the main canteen is open until 10:00 PM.',
           timestamp,
           conversationId: convId,
         };
 
-      case 'event':
+      case 'event': {
+        const foundResources = searchResourceCatalog(req.message, 'event');
+        const customMarkdown = formatResourceMarkdownResponse(
+          'EVENT AGENT ACTIVATED',
+          '🏆 Hackathon & Developer Event Platforms',
+          'This voice agent is active. Activating Events Agent... Here are reliable platforms where you can find active hackathons and coding competitions:',
+          foundResources
+        );
         return {
           success: true,
           agent: 'event',
           agentBadgeLabel: 'EVENT AGENT ACTIVATED',
           confidence: classification.confidence,
-          markdown: `🎉 **Campus Events & Hackathon Radar**\n\nThis voice agent is active. Activating Events Agent...\n\n• **Annual Campus Hackathon:** Scheduled for this Friday @ 10:00 AM in SAC Hall\n• **AI Workshop:** Saturday @ 02:00 PM in Main Auditorium B\n• **Registration Portals:** [Devfolio Hackathons](https://devfolio.co/hackathons) | [Unstop Student Challenges](https://unstop.com/hackathons)`,
-          speechText: 'This voice agent is active. Activating Events Agent... The Annual Campus Hackathon is scheduled for this Friday at 10:00 AM at the Student Activity Center.',
+          markdown: customMarkdown,
+          speechText: 'This voice agent is active. Activating Events Agent... Here are top hackathon discovery platforms for you.',
           timestamp,
           conversationId: convId,
         };
+      }
 
       case 'campus_gps':
         return {
@@ -372,17 +407,25 @@ export async function executeCentralOrchestrator(
           conversationId: convId,
         };
 
-      case 'resource':
+      case 'resource': {
+        const foundResources = searchResourceCatalog(req.message, 'resource');
+        const customMarkdown = formatResourceMarkdownResponse(
+          'RESOURCE AGENT ACTIVATED',
+          '📚 Institutional & Public Resource Hub',
+          'This voice agent is active. Activating Resource Agent... Here are verified books and learning materials matching your query:',
+          foundResources
+        );
         return {
           success: true,
           agent: 'resource',
           agentBadgeLabel: 'RESOURCE AGENT ACTIVATED',
           confidence: classification.confidence,
-          markdown: `📚 **Institutional Resource & Library Catalog**\n\nThis voice agent is active. Activating Resource Agent...\n\n• **Central Library Catalog:** 42,000+ Physical Textbooks & IEEE Digital Periodicals Available\n• **Online Repositories:** [MDN Web Docs](https://developer.mozilla.org/) | [GeeksforGeeks Academic Portal](https://www.geeksforgeeks.org/computer-science-projects/)`,
-          speechText: 'This voice agent is active. Activating Resource Agent... The Central Library catalog contains over 42,000 physical volumes and full IEEE digital access.',
+          markdown: customMarkdown,
+          speechText: 'This voice agent is active. Activating Resource Agent... The Central Library catalog and online documentation portals are ready for you.',
           timestamp,
           conversationId: convId,
         };
+      }
 
       default:
         return {

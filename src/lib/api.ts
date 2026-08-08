@@ -157,4 +157,6 @@ export { summarizeNotice, translateNotice, predictGrievanceDepartment, searchCom
 export type { AnnouncementItem, FacultyMember, AppointmentRecord } from '../services/communicationAgentService';
 export { runDijkstra, resolveClassroomQuery } from '../services/dijkstraRouter';
 export type { DijkstraResult, ClassroomMatch } from '../services/dijkstraRouter';
+export { searchResourceCatalog, addResourceItem, getAllResourceItems, formatResourceMarkdownResponse } from '../services/resourceService';
+export type { ResourceItem } from '../data/resourceCatalog';
 
