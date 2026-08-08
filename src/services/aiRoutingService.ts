@@ -87,6 +87,30 @@ export function executeClientEnclaveFallback(prompt: string, user: any): AgentRe
   }
 
   // Agent 2: PLACEMENT_PIPELINE
+  if (q.includes('ats') || q.includes('resume') || q.includes('score')) {
+    return {
+      agent: 'PLACEMENT_PIPELINE',
+      markdown: `🎓 **ATS Resume Diagnostic & Impact Analysis**\n\n• **Overall ATS Score:** 87/100\n• **Keyword Match:** 91% | **Formatting:** 96% | **Project Quantification:** 78%\n\n⚠️ **Critical Issue:** Missing target role keywords: \`C++\` and \`Distributed System Design\`.\n\n👉 *Recommended Fix: Reorder technical skills section and rewrite Project 2 bullet points with quantified outcomes.*`,
+      telemetry: { atsScore: 87, readinessScore: 78 },
+    };
+  }
+
+  if (q.includes('roadmap') || q.includes('microsoft') || q.includes('target role') || q.includes('skill gap')) {
+    return {
+      agent: 'PLACEMENT_PIPELINE',
+      markdown: `🎯 **Microsoft SDE Placement Roadmap (Target Readiness: 85%)**\n\n• **Phase 1 (Days 1-5):** Bridge DSA Gap — Trees & Graph Traversals (12 Medium Problems)\n• **Phase 2 (Days 6-10):** System Design Fundamentals — REST API Caching & Fault Tolerance\n• **Phase 3 (Days 11-14):** Resume Defense & Mock Recruiter Simulation\n\n*Targeting Drive Date: 94% Alignment Match.*`,
+      telemetry: { status: 'ONLINE', targetCompany: 'Microsoft' },
+    };
+  }
+
+  if (q.includes('interview') || q.includes('mock') || q.includes('recruiter')) {
+    return {
+      agent: 'PLACEMENT_PIPELINE',
+      markdown: `🎙️ **AI Recruiter Probing & Defense Simulation**\n\n**Interviewer Question:** *"You listed 'Zeno Governance Platform' on your resume. How did you handle fallback state management when the backend API timed out?"*\n\n**Suggested Talking Points:**\n• Mention the 3.5s AbortController connection threshold.\n• Detail the client-side enclave fallback state engine.\n• Highlight zero UI crash resilience during Render cold-starts.`,
+      telemetry: { status: 'ONLINE', simulationActive: true },
+    };
+  }
+
   if (q.includes('placement') || q.includes('academic standing') || q.includes('cgpa') || q.includes('job')) {
     return {
       agent: 'PLACEMENT_PIPELINE',

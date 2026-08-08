@@ -156,6 +156,39 @@ export interface RecruiterFeedback {
   rejectionRisk: number;
 }
 
+export interface AtsScoreBreakdown {
+  overallScore: number;
+  keywordMatchPct: number;
+  formattingPct: number;
+  skillsPct: number;
+  projectImpactPct: number;
+  missingKeywords: string[];
+}
+
+export interface ResumeDiffItem {
+  id: string;
+  section: string;
+  beforeText: string;
+  afterText: string;
+  rationale: string;
+}
+
+export interface SkillGapItem {
+  id: string;
+  skillName: string;
+  currentScore: number;
+  requiredScore: number;
+  gap: number;
+  priorityLevel: 'HIGH PRIORITY' | 'CRITICAL DANGER' | 'MATCHED ✓';
+}
+
+export interface RecruiterSimProbe {
+  id: string;
+  projectTitle: string;
+  interviewerQuestion: string;
+  suggestedTalkingPoints: string[];
+}
+
 export interface InterviewReplay {
   questionId: string;
   questionText: string;
