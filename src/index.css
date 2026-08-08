@@ -40,7 +40,17 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   overflow-x: hidden;
+  line-height: 1.6;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Accessible Focus States (WCAG 2.1 AA) */
+:focus-visible {
+  outline: 2px solid #00f0ff !important;
+  outline-offset: 2px !important;
 }
 
 /* Custom Scrollbar */

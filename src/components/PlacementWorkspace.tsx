@@ -85,20 +85,20 @@ export const PlacementWorkspace: React.FC = () => {
 
   return (
     <div className="space-y-6 font-sans select-none text-slate-100 pb-12">
-      {/* Top Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 zeno-glass-card border border-slate-800">
+      {/* Header Bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-3xl bg-[#090D14]/90 border border-slate-800 text-slate-100 font-sans shadow-2xl">
         <div className="flex items-center space-x-3">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
-            <GraduationCap className="w-6 h-6 animate-pulse" />
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.3)] flex-shrink-0">
+            <GraduationCap className="w-6 h-6 animate-pulse flex-shrink-0" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
               <h2 className="text-xl font-extrabold text-white">Placement Agent Control Enclave</h2>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex-shrink-0">
                 [AGENT: PLACEMENT_PIPELINE]
               </span>
             </div>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">
+            <p className="text-xs text-zinc-300 font-medium font-mono mt-0.5">
               Structured Resume Parser • Skill Gap Matrix • Clickable Resource Mapping • ATS Telemetry
             </p>
           </div>
@@ -107,20 +107,20 @@ export const PlacementWorkspace: React.FC = () => {
         <button
           onClick={handleSeedAlexRivera}
           disabled={isAnalyzing}
-          className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-mono text-xs font-extrabold shadow-[0_0_15px_rgba(16,185,129,0.4)] transition-all flex items-center space-x-2 shrink-0 disabled:opacity-50"
+          className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono text-xs font-extrabold shadow-[0_0_15px_rgba(16,185,129,0.4)] transition-all flex items-center space-x-2 flex-shrink-0 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
         >
-          <Zap className="w-4 h-4 fill-amber-300 text-amber-300" />
+          <Zap className="w-4 h-4 fill-amber-300 text-amber-300 flex-shrink-0" />
           <span>⚡ Seed Alex Rivera Resume</span>
         </button>
       </div>
 
       {/* Voice Activation Response Banner */}
-      <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs font-mono space-y-1.5 shadow-lg">
-        <div className="flex items-center space-x-2 text-emerald-300 font-bold">
-          <Sparkles className="w-4 h-4 text-emerald-400" />
+      <div className="p-4 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-xs font-mono space-y-1.5 shadow-lg">
+        <div className="flex items-center space-x-2 text-emerald-300 font-extrabold">
+          <Sparkles className="w-4 h-4 text-emerald-400 flex-shrink-0" />
           <span>Placement Agent Voice Protocol:</span>
         </div>
-        <p className="text-slate-200 font-bold leading-relaxed">"{analysisResult.speechText}"</p>
+        <p className="text-slate-100 font-semibold leading-relaxed">"{analysisResult.speechText}"</p>
       </div>
 
       {/* 2-COLUMN MAIN LAYOUT */}

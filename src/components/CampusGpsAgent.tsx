@@ -124,41 +124,41 @@ export const CampusGpsAgent: React.FC = () => {
       <div className="p-6 zeno-glass-card border border-cyan-500/30 bg-gradient-to-r from-slate-950 via-[#071120] to-blue-950/40">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(0,240,255,0.3)]">
-              <Navigation className="w-6 h-6 animate-pulse" />
+            <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(0,240,255,0.3)] flex-shrink-0">
+              <Navigation className="w-6 h-6 animate-pulse flex-shrink-0" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
                 <h2 className="text-xl font-extrabold text-white">ZENO Campus GPS Agent</h2>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-extrabold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex-shrink-0">
                   DIJKSTRA ROUTER ACTIVE
                 </span>
               </div>
-              <p className="text-xs text-slate-300 font-mono mt-0.5">
+              <p className="text-xs text-zinc-200 font-medium font-mono mt-0.5">
                 Google Maps-Style Indoor/Outdoor Campus Navigation • 3D Campus Mind-Map • Dijkstra Shortest Path
               </p>
             </div>
           </div>
 
           {/* Accessibility Toggle & GPS Button */}
-          <div className="flex items-center space-x-2 font-mono text-xs shrink-0">
+          <div className="flex items-center space-x-2 font-mono text-xs flex-shrink-0">
             <button
               onClick={() => setAccessibilityMode(!accessibilityMode)}
-              className={`px-3 py-2 rounded-xl border font-bold transition-all flex items-center space-x-1.5 ${
+              className={`px-3.5 py-2 rounded-xl border font-bold transition-all flex items-center space-x-1.5 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
                 accessibilityMode
                   ? 'bg-purple-600 text-white border-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.4)]'
-                  : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+                  : 'bg-slate-900 text-slate-200 border-slate-700 hover:text-white'
               }`}
             >
-              <Accessibility className="w-4 h-4" />
+              <Accessibility className="w-4 h-4 flex-shrink-0" />
               <span>{accessibilityMode ? '♿ Accessible Route ON' : '♿ Accessible Route'}</span>
             </button>
 
             <button
               onClick={handleUseGpsLocation}
-              className="px-3.5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold transition-all shadow-[0_0_15px_rgba(0,240,255,0.4)] flex items-center space-x-1.5"
+              className="px-4 py-2 rounded-xl bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-extrabold transition-all shadow-[0_0_15px_rgba(0,240,255,0.4)] flex items-center space-x-2 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
             >
-              <Crosshair className="w-4 h-4" />
+              <Crosshair className="w-4 h-4 flex-shrink-0" />
               <span>Use Campus GPS</span>
             </button>
           </div>
@@ -166,12 +166,12 @@ export const CampusGpsAgent: React.FC = () => {
 
         {/* GPS Status Notice Bar */}
         {gpsStatusNotice && (
-          <div className="mt-4 p-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-mono flex items-center justify-between">
+          <div className="mt-4 p-3 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-200 text-xs font-mono flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Zap className="w-4 h-4 text-cyan-400 shrink-0 fill-cyan-400" />
-              <span>{gpsStatusNotice}</span>
+              <Zap className="w-4 h-4 text-cyan-300 flex-shrink-0 fill-cyan-300" />
+              <span className="font-semibold">{gpsStatusNotice}</span>
             </div>
-            <button onClick={() => setGpsStatusNotice(null)} className="text-xs text-slate-400 hover:text-white underline">
+            <button onClick={() => setGpsStatusNotice(null)} className="text-xs text-slate-200 hover:text-white underline flex-shrink-0 font-bold">
               Dismiss
             </button>
           </div>
