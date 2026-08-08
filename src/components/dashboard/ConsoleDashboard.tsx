@@ -6,6 +6,7 @@ import { CryptographicReceiptModal } from './CryptographicReceiptModal';
 import { NotificationDrawer } from './NotificationDrawer';
 import { GisMapModal } from '../gis/GisMapModal';
 import { Campus3DMap } from '../Campus3DMap';
+import { CampusGpsAgent } from '../CampusGpsAgent';
 import { CommunicationDashboard } from '../communication/CommunicationDashboard';
 import { PlacementDashboard } from '../placement/PlacementDashboard';
 import { PlacementWorkspace } from '../PlacementWorkspace';
@@ -237,7 +238,7 @@ export const ConsoleDashboard: React.FC = () => {
 
         {activeTab === 'gis' && (
           <div className="h-full p-4 sm:p-6 overflow-y-auto bg-transparent">
-            <Campus3DMap />
+            <CampusGpsAgent />
           </div>
         )}
 

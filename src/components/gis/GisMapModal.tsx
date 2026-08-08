@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Navigation } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { Campus3DMap } from '../Campus3DMap';
+import { CampusGpsAgent } from '../CampusGpsAgent';
 
 export const GisMapModal: React.FC = () => {
   const { isGisModalOpen, setIsGisModalOpen } = useApp();
@@ -25,9 +25,9 @@ export const GisMapModal: React.FC = () => {
             </div>
             <div>
               <h2 className="text-base font-extrabold text-white flex items-center space-x-2">
-                <span>Spatial 3D Campus Digital Twin & Indoor Blueprint</span>
+                <span>Campus GPS Agent — Dijkstra 3D Navigation</span>
                 <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-                  [AGENT: ACADEMIC_GIS]
+                  [AGENT: CAMPUS_GPS]
                 </span>
               </h2>
             </div>
@@ -42,7 +42,7 @@ export const GisMapModal: React.FC = () => {
 
         {/* Modal Body */}
         <div className="flex-1 overflow-y-auto">
-          <Campus3DMap />
+          <CampusGpsAgent />
         </div>
       </motion.div>
     </div>

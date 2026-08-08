@@ -2,224 +2,263 @@
   "campusInfo": {
     "name": "Vardhaman College of Engineering (VCE Campus)",
     "code": "VCE-HYD-500031",
-    "centerCoordinates": [78.3842, 17.2451],
-    "boundaryPolygon": [
-      [78.3810, 17.2430],
-      [78.3880, 17.2430],
-      [78.3880, 17.2480],
-      [78.3810, 17.2480]
-    ]
+    "centerCoordinates": [78.3842, 17.2451]
   },
-  "buildings": [
+  "blocks": [
     {
       "id": "bldg-admin",
-      "name": "Admin Block & CSE Wing",
-      "code": "ADM-CSE",
-      "heightMeters": 28,
-      "floorsCount": 5,
-      "color": "#00F0FF",
-      "roofGlassEffect": true,
+      "name": "Admin Block",
+      "code": "ADM",
+      "floorsCount": 4,
+      "heightMeters": 26,
       "coordinates": [78.3845, 17.2452],
       "dimensions": { "width": 80, "length": 50 },
-      "floors": [
-        { "level": 0, "name": "Ground Floor", "facilities": ["Central Administrative Office", "Principal Office", "Main Auditorium"] },
-        { "level": 1, "name": "Floor 1", "facilities": ["CSE Faculty Lounge", "Server Room", "CL-01 Python Lab"] },
-        { "level": 2, "name": "Floor 2", "facilities": ["CSE HOD Cabin (Dr. V. Sharma)", "Room C-204", "CL-12 Operating Systems Lab"] },
-        { "level": 3, "name": "Floor 3", "facilities": ["AI Systems Research Lab", "Faculty Cabins 301-312"] },
-        { "level": 4, "name": "Floor 4", "facilities": ["High-Performance Computing Center", "Robotics Lab"] }
+      "color": "#00F0FF",
+      "roofGlassEffect": true,
+      "departments": ["Principal Office", "Administration", "Admissions"],
+      "classrooms": [
+        { "id": "adm_001", "name": "ADM-001", "floor": "0", "room_number": "001", "type": "Administrative Office" },
+        { "id": "adm_101", "name": "ADM-101", "floor": "1", "room_number": "101", "type": "Conference Hall" },
+        { "id": "adm_201", "name": "ADM-201", "floor": "2", "room_number": "201", "type": "Dean Office" }
+      ]
+    },
+    {
+      "id": "bldg-it",
+      "name": "IT Block",
+      "code": "IT",
+      "floorsCount": 3,
+      "heightMeters": 20,
+      "coordinates": [78.3830, 17.2462],
+      "dimensions": { "width": 70, "length": 45 },
+      "color": "#3B82F6",
+      "roofGlassEffect": true,
+      "departments": ["Information Technology", "Cloud Computing Lab"],
+      "classrooms": [
+        { "id": "it_001", "name": "IT-001", "floor": "0", "room_number": "001", "type": "Classroom" },
+        { "id": "it_101", "name": "IT-101", "floor": "1", "room_number": "101", "type": "Computer Lab 1" },
+        { "id": "it_204", "name": "IT-204", "floor": "2", "room_number": "204", "type": "Software Engineering Lab" }
+      ]
+    },
+    {
+      "id": "bldg-sj",
+      "name": "Silver Jubilee Block",
+      "code": "SJB",
+      "floorsCount": 5,
+      "heightMeters": 30,
+      "coordinates": [78.3860, 17.2465],
+      "dimensions": { "width": 75, "length": 50 },
+      "color": "#8B5CF6",
+      "roofGlassEffect": true,
+      "departments": ["Basic Sciences", "Humanities", "Auditorium"],
+      "classrooms": [
+        { "id": "sjb_001", "name": "SJB-001", "floor": "0", "room_number": "001", "type": "Physics Lab" },
+        { "id": "sjb_105", "name": "SJB-105", "floor": "1", "room_number": "105", "type": "Chemistry Lab" },
+        { "id": "sjb_301", "name": "SJB-301", "floor": "3", "room_number": "301", "type": "Grand Auditorium" }
       ]
     },
     {
       "id": "bldg-ece",
-      "name": "ECE & EEE Academic Block",
-      "code": "ECE-BLOCK",
+      "name": "ECE Block",
+      "code": "ECE",
+      "floorsCount": 3,
       "heightMeters": 22,
+      "coordinates": [78.3832, 17.2445],
+      "dimensions": { "width": 70, "length": 45 },
+      "color": "#10B981",
+      "roofGlassEffect": true,
+      "departments": ["Electronics & Communication", "VLSI Design"],
+      "classrooms": [
+        { "id": "ece_001", "name": "ECE-001", "floor": "0", "room_number": "001", "type": "Classroom" },
+        { "id": "ece_002", "name": "ECE-002", "floor": "0", "room_number": "002", "type": "Classroom" },
+        { "id": "ece_101", "name": "ECE-101", "floor": "1", "room_number": "101", "type": "Classroom" },
+        { "id": "ece_204", "name": "ECE-204", "floor": "1", "room_number": "204", "type": "Digital Signals Lab" },
+        { "id": "ece_301", "name": "ECE-301", "floor": "2", "room_number": "301", "type": "Embedded Systems Lab" }
+      ]
+    },
+    {
+      "id": "bldg-eee",
+      "name": "EEE Block",
+      "code": "EEE",
+      "floorsCount": 3,
+      "heightMeters": 20,
+      "coordinates": [78.3820, 17.2440],
+      "dimensions": { "width": 65, "length": 40 },
+      "color": "#EAB308",
+      "roofGlassEffect": false,
+      "departments": ["Electrical & Electronics", "Power Systems"],
+      "classrooms": [
+        { "id": "eee_001", "name": "EEE-001", "floor": "0", "room_number": "001", "type": "Classroom" },
+        { "id": "eee_102", "name": "EEE-102", "floor": "1", "room_number": "102", "type": "High Voltage Lab" },
+        { "id": "eee_302", "name": "EEE-302", "floor": "2", "room_number": "302", "type": "Classroom" }
+      ]
+    },
+    {
+      "id": "bldg-csm",
+      "name": "CSM Block",
+      "code": "CSM",
       "floorsCount": 4,
+      "heightMeters": 25,
+      "coordinates": [78.3848, 17.2458],
+      "dimensions": { "width": 80, "length": 50 },
+      "color": "#EC4899",
+      "roofGlassEffect": true,
+      "departments": ["Computer Science (AI & ML)", "Data Science"],
+      "classrooms": [
+        { "id": "csm_001", "name": "CSM-001", "floor": "0", "room_number": "001", "type": "AI Research Lab" },
+        { "id": "csm_102", "name": "CSM-102", "floor": "1", "room_number": "102", "type": "Classroom" },
+        { "id": "csm_204", "name": "CSM-204", "floor": "2", "room_number": "204", "type": "Deep Learning Lab" },
+        { "id": "csm_305", "name": "CSM-305", "floor": "3", "room_number": "305", "type": "Seminar Hall" }
+      ]
+    },
+    {
+      "id": "bldg-aic",
+      "name": "AIC Block",
+      "code": "AIC",
+      "floorsCount": 2,
+      "heightMeters": 16,
+      "coordinates": [78.3870, 17.2450],
+      "dimensions": { "width": 60, "length": 40 },
+      "color": "#F97316",
+      "roofGlassEffect": true,
+      "departments": ["Atal Incubation Center", "Startup Cell", "Maker Space"],
+      "classrooms": [
+        { "id": "aic_101", "name": "AIC-101", "floor": "0", "room_number": "101", "type": "Incubation Lounge" },
+        { "id": "aic_201", "name": "AIC-201", "floor": "1", "room_number": "201", "type": "FabLab Robotics" }
+      ]
+    },
+    {
+      "id": "bldg-lib",
+      "name": "Central Library",
+      "code": "LIB",
+      "floorsCount": 3,
+      "heightMeters": 18,
+      "coordinates": [78.3822, 17.2460],
+      "dimensions": { "width": 55, "length": 55 },
+      "color": "#A855F7",
+      "roofGlassEffect": true,
+      "departments": ["Knowledge Resources", "Digital Periodicals", "Reading Hall"],
+      "classrooms": [
+        { "id": "lib_g01", "name": "LIB-Reading", "floor": "0", "room_number": "G01", "type": "Quiet Reading Hall" },
+        { "id": "lib_101", "name": "LIB-Digital", "floor": "1", "room_number": "101", "type": "IEEE Digital Media" }
+      ]
+    },
+    {
+      "id": "bldg-canteen",
+      "name": "Campus Canteen",
+      "code": "CANTEEN",
+      "floorsCount": 2,
+      "heightMeters": 14,
+      "coordinates": [78.3850, 17.2438],
+      "dimensions": { "width": 60, "length": 60 },
+      "color": "#EF4444",
+      "roofGlassEffect": true,
+      "departments": ["Food Court", "Stationery Shop", "ATM"],
+      "classrooms": [
+        { "id": "can_01", "name": "Main Canteen", "floor": "0", "room_number": "C01", "type": "Food Court" },
+        { "id": "can_02", "name": "Stationery Shop", "floor": "0", "room_number": "C02", "type": "Printing Shop" }
+      ]
+    }
+  ],
+  "buildings": [
+    {
+      "id": "bldg-admin",
+      "name": "Admin Block",
+      "code": "ADM",
+      "heightMeters": 26,
+      "floorsCount": 4,
+      "color": "#00F0FF",
+      "roofGlassEffect": true,
+      "coordinates": [78.3845, 17.2452],
+      "dimensions": { "width": 80, "length": 50 }
+    },
+    {
+      "id": "bldg-ece",
+      "name": "ECE Block",
+      "code": "ECE",
+      "heightMeters": 22,
+      "floorsCount": 3,
       "color": "#10B981",
       "roofGlassEffect": true,
       "coordinates": [78.3832, 17.2445],
-      "dimensions": { "width": 70, "length": 45 },
-      "floors": [
-        { "level": 0, "name": "Ground Floor", "facilities": ["VLSI Design Lab", "Embedded Systems Center"] },
-        { "level": 1, "name": "Floor 1", "facilities": ["ECE HOD Office", "Lecture Halls 101-108"] }
-      ]
-    },
-    {
-      "id": "bldg-mech",
-      "name": "Mechanical & Civil Block",
-      "code": "MECH-BLOCK",
-      "heightMeters": 18,
-      "floorsCount": 3,
-      "color": "#F59E0B",
-      "roofGlassEffect": false,
-      "coordinates": [78.3860, 17.2455],
-      "dimensions": { "width": 75, "length": 40 },
-      "floors": [
-        { "level": 0, "name": "Ground Floor", "facilities": ["Cad-Cam Lab", "Manufacturing Workshop"] }
-      ]
+      "dimensions": { "width": 70, "length": 45 }
     },
     {
       "id": "bldg-[#sac]",
-      "name": "Student Activity Center & Canteen",
-      "code": "SAC-FC",
+      "name": "Campus Canteen",
+      "code": "CANTEEN",
       "heightMeters": 14,
       "floorsCount": 2,
-      "color": "#F43F5E",
+      "color": "#EF4444",
       "roofGlassEffect": true,
       "coordinates": [78.3850, 17.2438],
-      "dimensions": { "width": 60, "length": 60 },
-      "floors": [
-        { "level": 0, "name": "Ground Floor", "facilities": ["Central Canteen & Food Court", "Xerox & Stationery Shop", "HDFC Campus ATM"] },
-        { "level": 1, "name": "Floor 1", "facilities": ["Indoor Gymnasium", "Table Tennis Arena"] }
-      ]
-    },
-    {
-      "id": "bldg-[#lib]",
-      "name": "Central Knowledge Library",
-      "code": "CENT-LIB",
-      "heightMeters": 20,
-      "floorsCount": 3,
-      "color": "#A855F7",
-      "roofGlassEffect": true,
-      "coordinates": [78.3822, 17.2460],
-      "dimensions": { "width": 55, "length": 55 },
-      "floors": [
-        { "level": 0, "name": "Ground Floor", "facilities": ["Digital Reference Section", "IEEE Journal Archives"] }
-      ]
+      "dimensions": { "width": 60, "length": 60 }
     }
   ],
   "entities": [
     {
-      "id": "ent-cse-hod",
-      "name": "CSE HOD Cabin (Dr. V. Sharma)",
-      "category": "FACULTY",
-      "building": "Admin Block & CSE Wing",
-      "floor": 2,
-      "roomNumber": "C-201",
-      "facultyDetails": {
-        "name": "Dr. V. Sharma",
-        "designation": "Head of Department & Senior Professor",
-        "department": "Computer Science & Engineering",
-        "officeHours": "10:00 AM - 01:00 PM IST"
-      },
-      "coordinates": [78.3845, 17.2452],
-      "accessible": true
-    },
-    {
-      "id": "ent-prof-ahmed",
-      "name": "Prof. Ahmed Cabin (AI Specialist)",
-      "category": "FACULTY",
-      "building": "Admin Block & CSE Wing",
-      "floor": 2,
-      "roomNumber": "C-208",
-      "facultyDetails": {
-        "name": "Prof. Ahmed",
-        "designation": "Associate Professor",
-        "department": "Computer Science & Engineering",
-        "officeHours": "02:00 PM - 04:00 PM IST"
-      },
-      "coordinates": [78.3846, 17.2453],
-      "accessible": true
-    },
-    {
-      "id": "ent-prof-verma",
-      "name": "Prof. R. Verma Cabin (DSA Lead)",
-      "category": "FACULTY",
-      "building": "Admin Block & CSE Wing",
-      "floor": 2,
-      "roomNumber": "C-212",
-      "facultyDetails": {
-        "name": "Prof. R. Verma",
-        "designation": "Assistant Professor",
-        "department": "Computer Science & Engineering",
-        "officeHours": "11:00 AM - 01:00 PM IST"
-      },
-      "coordinates": [78.3847, 17.2452],
-      "accessible": true
-    },
-    {
-      "id": "ent-room-c204",
-      "name": "Classroom C-204 (Algorithms Lecture)",
+      "id": "ent-room-ece204",
+      "name": "Room ECE-204",
       "category": "ROOM",
-      "building": "Admin Block & CSE Wing",
-      "floor": 2,
-      "roomNumber": "C-204",
-      "coordinates": [78.3845, 17.2452],
-      "accessible": true
-    },
-    {
-      "id": "ent-lab-os",
-      "name": "CL-12 Operating Systems Laboratory",
-      "category": "SERVICE",
-      "building": "Admin Block & CSE Wing",
-      "floor": 2,
-      "roomNumber": "CL-12",
-      "coordinates": [78.3846, 17.2451],
+      "building": "ECE Block",
+      "floor": 1,
+      "roomNumber": "ECE-204",
+      "coordinates": [78.3832, 17.2445],
       "accessible": true
     },
     {
       "id": "ent-canteen-main",
-      "name": "Central Campus Canteen & Food Court",
+      "name": "Campus Canteen",
       "category": "CANTEEN",
-      "building": "Student Activity Center & Canteen",
+      "building": "Campus Canteen",
       "floor": 0,
-      "roomNumber": "SAC-01",
+      "roomNumber": "C01",
       "coordinates": [78.3850, 17.2438],
-      "accessible": true
-    },
-    {
-      "id": "ent-xerox-shop",
-      "name": "Xerox & Stationery Printing Shop",
-      "category": "SERVICE",
-      "building": "Student Activity Center & Canteen",
-      "floor": 0,
-      "roomNumber": "SAC-04",
-      "coordinates": [78.3851, 17.2439],
-      "accessible": true
-    },
-    {
-      "id": "ent-atm",
-      "name": "HDFC Campus ATM Point",
-      "category": "SERVICE",
-      "building": "Student Activity Center & Canteen",
-      "floor": 0,
-      "roomNumber": "ATM-01",
-      "coordinates": [78.3849, 17.2437],
-      "accessible": true
-    },
-    {
-      "id": "ent-medical-unit",
-      "name": "Campus Health & Medical Center",
-      "category": "SERVICE",
-      "building": "Admin Block & CSE Wing",
-      "floor": 0,
-      "roomNumber": "MED-01",
-      "coordinates": [78.3843, 17.2450],
-      "accessible": true
-    },
-    {
-      "id": "ent-sports-arena",
-      "name": "Outdoor Basketball & Sports Arena",
-      "category": "SPORTS",
-      "building": "Sports Grounds",
-      "floor": 0,
-      "coordinates": [78.3865, 17.2442],
       "accessible": true
     }
   ],
   "routingNodes": [
-    { "id": "n-gate", "name": "Main Entrance Gate", "coordinates": [78.3815, 17.2435], "floor": 0, "neighbors": ["n-sac", "n-lib"] },
-    { "id": "n-sac", "name": "SAC Food Court Walkway", "coordinates": [78.3850, 17.2438], "floor": 0, "neighbors": ["n-gate", "n-admin-g"] },
-    { "id": "n-lib", "name": "Library Walkway", "coordinates": [78.3822, 17.2460], "floor": 0, "neighbors": ["n-gate", "n-ece"] },
-    { "id": "n-ece", "name": "ECE Block Entrance", "coordinates": [78.3832, 17.2445], "floor": 0, "neighbors": ["n-lib", "n-admin-g"] },
-    { "id": "n-admin-g", "name": "Admin Block Ground Lobby", "coordinates": [78.3845, 17.2452], "floor": 0, "neighbors": ["n-sac", "n-ece", "n-admin-elev", "n-admin-stairs"] },
-    { "id": "n-admin-elev", "name": "Admin Block Elevator Bank", "coordinates": [78.3845, 17.2452], "floor": 0, "isElevator": true, "neighbors": ["n-admin-g", "n-admin-f2-elev"] },
-    { "id": "n-admin-stairs", "name": "Admin Block Main Staircase", "coordinates": [78.3845, 17.2452], "floor": 0, "isStairs": true, "neighbors": ["n-admin-g", "n-admin-f2-stairs"] },
-    { "id": "n-admin-f2-elev", "name": "Admin Block Floor 2 Elevator Lobby", "coordinates": [78.3845, 17.2452], "floor": 2, "isElevator": true, "neighbors": ["n-admin-elev", "n-admin-f2-corridor"] },
-    { "id": "n-admin-f2-stairs", "name": "Admin Block Floor 2 Staircase Lobby", "coordinates": [78.3845, 17.2452], "floor": 2, "isStairs": true, "neighbors": ["n-admin-stairs", "n-admin-f2-corridor"] },
-    { "id": "n-admin-f2-corridor", "name": "Floor 2 CSE Corridor", "coordinates": [78.3845, 17.2452], "floor": 2, "neighbors": ["n-admin-f2-elev", "n-admin-f2-stairs", "n-c204", "n-cse-hod", "n-prof-ahmed"] },
-    { "id": "n-c204", "name": "Room C-204 Doorway", "coordinates": [78.3845, 17.2452], "floor": 2, "neighbors": ["n-admin-f2-corridor"] },
-    { "id": "n-cse-hod", "name": "CSE HOD Doorway", "coordinates": [78.3845, 17.2452], "floor": 2, "neighbors": ["n-admin-f2-corridor"] },
-    { "id": "n-prof-ahmed", "name": "Prof. Ahmed Doorway", "coordinates": [78.3846, 17.2453], "floor": 2, "neighbors": ["n-admin-f2-corridor"] }
+    { "id": "n_gate", "name": "Main Entrance Gate", "coordinates": [78.3815, 17.2435], "floor": 0, "neighbors": ["n_junction_south"] },
+    { "id": "n_junction_south", "name": "South Campus Junction", "coordinates": [78.3830, 17.2438], "floor": 0, "neighbors": ["n_gate", "n_canteen_ent"] },
+    { "id": "n_canteen_ent", "name": "Canteen Entrance", "coordinates": [78.3850, 17.2438], "floor": 0, "neighbors": ["n_junction_south"] }
+  ],
+  "graphNodes": [
+    { "id": "n_gate", "name": "Main Entrance Gate", "type": "GATE", "block": "Main Gate", "floor": 0, "coordinates": [78.3815, 17.2435] },
+    { "id": "n_junction_south", "name": "South Campus Junction", "type": "JUNCTION", "block": "Pathway", "floor": 0, "coordinates": [78.3830, 17.2438] },
+    { "id": "n_canteen_ent", "name": "Canteen Entrance", "type": "ENTRANCE", "block": "Campus Canteen", "floor": 0, "coordinates": [78.3850, 17.2438] },
+    { "id": "n_eee_ent", "name": "EEE Block Entrance", "type": "ENTRANCE", "block": "EEE Block", "floor": 0, "coordinates": [78.3820, 17.2440] },
+    { "id": "n_ece_ent", "name": "ECE Block Entrance", "type": "ENTRANCE", "block": "ECE Block", "floor": 0, "coordinates": [78.3832, 17.2445] },
+    { "id": "n_junction_central", "name": "Central Campus Junction", "type": "JUNCTION", "block": "Main Walkway", "floor": 0, "coordinates": [78.3840, 17.2448] },
+    { "id": "n_admin_ent", "name": "Admin Block Entrance", "type": "ENTRANCE", "block": "Admin Block", "floor": 0, "coordinates": [78.3845, 17.2452] },
+    { "id": "n_csm_ent", "name": "CSM Block Entrance", "type": "ENTRANCE", "block": "CSM Block", "floor": 0, "coordinates": [78.3848, 17.2458] },
+    { "id": "n_it_ent", "name": "IT Block Entrance", "type": "ENTRANCE", "block": "IT Block", "floor": 0, "coordinates": [78.3830, 17.2462] },
+    { "id": "n_lib_ent", "name": "Library Entrance", "type": "ENTRANCE", "block": "Central Library", "floor": 0, "coordinates": [78.3822, 17.2460] },
+    { "id": "n_sj_ent", "name": "Silver Jubilee Entrance", "type": "ENTRANCE", "block": "Silver Jubilee Block", "floor": 0, "coordinates": [78.3860, 17.2465] },
+    { "id": "n_aic_ent", "name": "AIC Block Entrance", "type": "ENTRANCE", "block": "AIC Block", "floor": 0, "coordinates": [78.3870, 17.2450] },
+
+    { "id": "n_ece_stairs_f1", "name": "ECE Staircase Floor 1", "type": "STAIRCASE", "block": "ECE Block", "floor": 1, "coordinates": [78.3832, 17.2445] },
+    { "id": "n_ece_204", "name": "Room ECE-204", "type": "CLASSROOM", "block": "ECE Block", "floor": 1, "coordinates": [78.3832, 17.2445] },
+    { "id": "n_csm_204", "name": "CSM Lab 204", "type": "LAB", "block": "CSM Block", "floor": 2, "coordinates": [78.3848, 17.2458] },
+    { "id": "n_it_204", "name": "IT Lab 204", "type": "LAB", "block": "IT Block", "floor": 2, "coordinates": [78.3830, 17.2462] },
+    { "id": "n_eee_302", "name": "Room EEE-302", "type": "CLASSROOM", "block": "EEE Block", "floor": 2, "coordinates": [78.3820, 17.2440] }
+  ],
+  "graphEdges": [
+    { "source": "n_gate", "target": "n_junction_south", "weight": 80, "accessible": true },
+    { "source": "n_junction_south", "target": "n_canteen_ent", "weight": 70, "accessible": true },
+    { "source": "n_junction_south", "target": "n_eee_ent", "weight": 60, "accessible": true },
+    { "source": "n_eee_ent", "target": "n_ece_ent", "weight": 65, "accessible": true },
+    { "source": "n_canteen_ent", "target": "n_junction_central", "weight": 110, "accessible": true },
+    { "source": "n_ece_ent", "target": "n_junction_central", "weight": 85, "accessible": true },
+    { "source": "n_junction_central", "target": "n_admin_ent", "weight": 55, "accessible": true },
+    { "source": "n_junction_central", "target": "n_csm_ent", "weight": 75, "accessible": true },
+    { "source": "n_junction_central", "target": "n_lib_ent", "weight": 90, "accessible": true },
+    { "source": "n_lib_ent", "target": "n_it_ent", "weight": 70, "accessible": true },
+    { "source": "n_csm_ent", "target": "n_sj_ent", "weight": 95, "accessible": true },
+    { "source": "n_csm_ent", "target": "n_aic_ent", "weight": 120, "accessible": true },
+
+    { "source": "n_ece_ent", "target": "n_ece_stairs_f1", "weight": 20, "accessible": false, "stairs": true },
+    { "source": "n_ece_stairs_f1", "target": "n_ece_204", "weight": 25, "accessible": true },
+    { "source": "n_csm_ent", "target": "n_csm_204", "weight": 40, "accessible": true, "elevator": true },
+    { "source": "n_it_ent", "target": "n_it_204", "weight": 35, "accessible": true, "elevator": true },
+    { "source": "n_eee_ent", "target": "n_eee_302", "weight": 45, "accessible": false, "stairs": true }
   ]
 }
