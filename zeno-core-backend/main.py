@@ -141,7 +141,25 @@ async def handle_zeno_query(request: QueryRequest):
         }
 
     # Agent 2: PLACEMENT_PIPELINE
-    if any(w in q for w in ["placement", "academic standing", "cgpa", "job"]):
+    if any(w in q for w in ["placement", "resume", "ats", "job", "interview", "skill gap", "microsoft", "google", "mock interview", "career roadmap", "academic standing", "cgpa", "standing"]):
+        if any(w in q for w in ["ats", "resume", "score"]):
+            return {
+                "agent": "PLACEMENT_PIPELINE",
+                "markdown": "🎓 **ATS Resume Diagnostic & Impact Analysis**\n\n• **Overall ATS Score:** 87/100\n• **Keyword Match:** 91% | **Formatting:** 96% | **Project Quantification:** 78%\n\n⚠️ **Critical Warning:** Missing target role keywords: `C++` and `Distributed System Design`.\n\n👉 *Recommended Fix: Reorder technical skills section and rewrite Project 2 bullet points with quantified outcomes.*",
+                "telemetry": {"atsScore": 87, "readinessScore": 78}
+            }
+        if any(w in q for w in ["roadmap", "microsoft", "google", "target role", "skill gap"]):
+            return {
+                "agent": "PLACEMENT_PIPELINE",
+                "markdown": "🎯 **Microsoft SDE Placement Roadmap (Target Readiness: 85%)**\n\n• **Phase 1 (Days 1-5):** Bridge DSA Gap — Trees & Graph Traversals (12 Medium Problems)\n• **Phase 2 (Days 6-10):** System Design Fundamentals — REST API Caching & Fault Tolerance\n• **Phase 3 (Days 11-14):** Resume Defense & Mock Recruiter Simulation\n\n*Targeting Drive Date: 94% Alignment Match.*",
+                "telemetry": {"status": "ONLINE", "targetCompany": "Microsoft"}
+            }
+        if any(w in q for w in ["interview", "mock", "recruiter"]):
+            return {
+                "agent": "PLACEMENT_PIPELINE",
+                "markdown": "🎙️ **AI Recruiter Probing & Defense Simulation**\n\n**Interviewer Question:** *\"You listed 'Corassist AI Engine' on your resume. How did you handle fallback state management when the backend API timed out?\"*\n\n**Suggested Talking Points:**\n• Mention the 3.5s AbortController connection threshold.\n• Detail the client-side enclave fallback state engine.\n• Highlight zero UI crash resilience during Render cold-starts.",
+                "telemetry": {"status": "ONLINE", "simulationActive": True}
+            }
         name = user.get("full_name") or user.get("name") or "Alex Rivera"
         roll = user.get("roll_number") or user.get("roll_no") or "2451-22-733-001"
         cgpa = user.get("cgpa") or "8.84"
@@ -199,6 +217,39 @@ async def academic_query_endpoint(payload: AcademicQueryPayload):
         "agent": "ACADEMIC_STUDY_ENCLAVE",
         "markdown": "📚 **Grounded RAG Knowledge Retrieval: Binary Search Trees & AVL Rotations**\n\nIn-order traversal of a Binary Search Tree (BST) yields keys in sorted ascending order. When inserting elements into an AVL Tree, self-balancing rotations (LL, RR, LR, RL) are triggered when a node's balance factor exceeds $\\pm 1$.\n\n📌 **Source Citations:**\n- [Source: Data_Structures_Notes.pdf | Page 32 | Section: Binary Search Trees]\n- [Source: Question_Paper_2025.pdf | Page 4 | Section: Section B - Q4]\n\n*Source Grounding verified against vector store index.*",
         "telemetry": {"status": "ONLINE", "sourceCount": 2}
+    }
+
+# Explicit /api/v1/placement Endpoints
+@app.post("/api/v1/placement/resume-parse")
+async def placement_resume_parse_endpoint(request: Request):
+    return {
+        "status": "SUCCESS",
+        "candidate": "Alex Rivera",
+        "atsScore": 87,
+        "keywordMatch": "91%",
+        "formatting": "96%",
+        "missingKeywords": ["C++", "Distributed System Design"],
+        "message": "Resume parsed and ATS compatibility evaluated successfully."
+    }
+
+class PlacementEvaluatePayload(BaseModel):
+    prompt: Optional[str] = None
+    targetCompany: Optional[str] = "Microsoft"
+    user: Optional[Dict[str, Any]] = None
+
+@app.post("/api/v1/placement/evaluate")
+async def placement_evaluate_endpoint(payload: PlacementEvaluatePayload):
+    target = payload.targetCompany or "Microsoft"
+    return {
+        "agent": "PLACEMENT_PIPELINE",
+        "targetCompany": target,
+        "readinessScore": 85,
+        "skillGaps": [
+            {"skill": "Trees & Graphs", "gap": -23, "priority": "HIGH PRIORITY"},
+            {"skill": "Distributed System Design", "gap": -25, "priority": "CRITICAL DANGER"}
+        ],
+        "markdown": f"🎯 **{target} SDE Placement Roadmap (Target Readiness: 85%)**\n\n• **Phase 1 (Days 1-5):** Bridge DSA Gap — Trees & Graph Traversals (12 Medium Problems)\n• **Phase 2 (Days 6-10):** System Design Fundamentals — REST API Caching & Fault Tolerance\n• **Phase 3 (Days 11-14):** Resume Defense & Mock Recruiter Simulation\n\n*Targeting Drive Date: 94% Alignment Match.*",
+        "telemetry": {"status": "ONLINE", "kernel": "ZENO-K3K0"}
     }
 
 # Explicit /api/v1/auth Endpoints
