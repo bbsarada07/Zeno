@@ -123,7 +123,14 @@ class ResilientApiClient {
   public async checkHealth(): Promise<boolean> {
     try {
       const data = await this.get<any>('/health', null, { timeoutMs: 3500 });
-      if (data && (data.status === 'online' || data.status === 'healthy' || data.status === 'ok' || data.healthy === true)) {
+      if (
+        data &&
+        (data.status === 'online' ||
+          data.status === 'ONLINE' ||
+          data.status === 'healthy' ||
+          data.status === 'ok' ||
+          data.healthy === true)
+      ) {
         return true;
       }
       const docsResp = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/docs`, { method: 'HEAD', signal: AbortSignal.timeout(3500) });
@@ -135,3 +142,7 @@ class ResilientApiClient {
 }
 
 export const apiClient = new ResilientApiClient();
+
+export { queryZenoAgent, executeClientEnclaveFallback, PRIMARY_BACKEND_URL } from '../services/aiRoutingService';
+export type { AgentResponse } from '../services/aiRoutingService';
+

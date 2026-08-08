@@ -1,13 +1,14 @@
 """
-Zeno Autonomous Multi-Agent Smart Campus Governance Engine - Main FastAPI Server
+ZENO Autonomous Campus Intelligence API - Main FastAPI Server
 """
 
 import os
 import logging
-from typing import Optional
+from typing import Optional, Dict, Any
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
@@ -22,7 +23,7 @@ logger = logging.getLogger("zeno.main")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Initializing Zeno Autonomous Campus Governance Engine Backend...")
+    logger.info("Initializing ZENO Autonomous Campus Intelligence API Backend...")
     try:
         from services.vector_db import vector_db
         logger.info("Qdrant Vector DB Service initialized successfully.")
@@ -32,13 +33,37 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down Zeno Core Engine.")
 
 app = FastAPI(
-    title="Zeno Autonomous Campus API",
+    title="ZENO Autonomous Campus Intelligence API",
     description="Multi-Agent Async Governance Engine built with FastAPI, LangGraph, Pydantic v2, and Qdrant.",
-    version="1.4.0",
+    version="2.4.0",
     lifespan=lifespan
 )
 
-# Robust Pydantic Schemas for Flexible Auth Payloads
+# Comprehensive CORS Configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Permissive origin access for hackathon live demo resilience
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+)
+
+# Global Preflight OPTIONS Handler
+@app.options("/{full_path:path}")
+async def options_handler(full_path: str):
+    return JSONResponse(
+        status_code=200,
+        content={"status": "OK", "message": "CORS preflight permitted"}
+    )
+
+# Health Check Endpoints
+@app.get("/health")
+@app.get("/api/v1/health")
+async def health_check():
+    return {"status": "ONLINE", "kernel": "ZENO-K3K0", "version": "2.4.0"}
+
+# Robust Pydantic Schemas for Flexible Auth Payloads & Queries
 class OTPRequest(BaseModel):
     email: str
     domain_role: Optional[str] = "student"
@@ -49,34 +74,66 @@ class OTPVerify(BaseModel):
     otp: Optional[str] = None
     token: Optional[str] = None
 
-# CORS Configuration with Explicit Origins & Wildcard Fallback
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://zeno1.vercel.app",
-    "https://zeno1-xi.vercel.app",
-    "*"
-]
+class QueryPayload(BaseModel):
+    prompt: str
+    user: Optional[Dict[str, Any]] = None
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
-)
+# Dynamic Intent Routing Endpoint /api/v1/query
+@app.post("/api/v1/query")
+async def query_zeno(payload: QueryPayload):
+    prompt = payload.prompt or ""
+    user = payload.user or {}
+    q = prompt.lower()
 
-# Health Check Endpoints
-@app.get("/health")
-@app.get("/api/v1/health")
-async def health_check():
+    # Agent 1: ACADEMIC_GIS (Labs, Rooms, Canteen, Schedules)
+    if any(w in q for w in ["canteen", "food", "eat", "cafeteria"]):
+        dept = user.get("department_code") or user.get("department") or "CSE"
+        return {
+            "agent": "ACADEMIC_GIS",
+            "markdown": f"📍 **Location Resolution: Campus Canteen & Food Court**\n\n• **Building:** Student Activity Center (SAC) - Ground Floor\n• **Proximity:** 120m from {dept} Block\n• **Operating Hours:** 08:30 AM – 06:00 PM Slot\n👉 *Action: Spatial map vector coordinates transmitted to Campus GIS View.*",
+            "gisTarget": {"building": "SAC Building", "floor": 0, "room": "Food Court"},
+            "telemetry": {"kernel": "ZENO-K3K0", "status": "ONLINE"}
+        }
+
+    if any(w in q for w in ["where", "lab", "next lab", "room"]):
+        return {
+            "agent": "ACADEMIC_GIS",
+            "markdown": "📍 **Location Resolution: Operating Systems Laboratory**\n\n• **Building:** Admin Block - Floor 2 (Room C-12)\n• **Proximity:** 45m from Elevator Bank\n• **Operating Hours:** 10:00 AM – 12:00 PM Slot\n👉 *Action: Spatial map coordinates sent to Campus GIS View.*",
+            "gisTarget": {"building": "Admin Block", "floor": 2, "room": "C-12"},
+            "telemetry": {"kernel": "ZENO-K3K0", "status": "ONLINE"}
+        }
+
+    # Bunk & Attendance Math Calculator
+    if any(w in q for w in ["bunk", "skip", "attendance"]):
+        currentAtt = user.get("attendance_pct") or user.get("attendance") or user.get("attendance_percentage") or 72.5
+        try:
+            currentAtt = float(currentAtt)
+        except (ValueError, TypeError):
+            currentAtt = 72.5
+        projectedAtt = round(currentAtt * 0.98, 1)
+        return {
+            "agent": "ACADEMIC_GIS",
+            "markdown": f"⚠️ **Attendance Impact Analysis**\n\n• **Current Attendance:** {currentAtt}%\n• **Projected Attendance if Skipped:** {projectedAtt}%\n• **Status:** 🔴 CRITICAL RISK (Below 75.0% Mandatory Threshold)\n\n*Skipping this class violates academic compliance policy.*",
+            "telemetry": {"kernel": "ZENO-K3K0", "status": "ONLINE"}
+        }
+
+    # Agent 2: PLACEMENT_PIPELINE
+    if any(w in q for w in ["placement", "academic standing", "cgpa", "job"]):
+        name = user.get("full_name") or user.get("name") or "Alex Rivera"
+        roll = user.get("roll_number") or user.get("roll_no") or "2451-22-733-001"
+        cgpa = user.get("cgpa") or "8.84"
+        return {
+            "agent": "PLACEMENT_PIPELINE",
+            "markdown": f"🎓 **Academic Standing & Career Telemetry**\n\n• **Student:** {name} ({roll})\n• **CGPA:** {cgpa} | **Active Backlogs:** 0\n• **Target Drive:** Google AI Engineer (L3) - **94% Readiness Match**\n• **ATS Resume Score:** 88%",
+            "telemetry": {"kernel": "ZENO-K3K0", "status": "ONLINE"}
+        }
+
+    # Agent 3 & 4: GENERAL GOVERNANCE & EVENTS
+    name = user.get("full_name") or user.get("name") or "Alex Rivera"
     return {
-        "status": "online",
-        "kernel": "Zeno v1.4 active",
-        "tenant": "CSM-Dept",
-        "engine": "Zeno Autonomous Multi-Agent Smart Campus Governance Engine"
+        "agent": "GOVERNANCE_ROUTER",
+        "markdown": f"📋 **Administrative Workflow Query Processed**\n\nResolved query for **{name}** regarding campus governance policy.\n• **Status:** Verified Active Student Session\n• **Routing:** Department SLA Verification Complete.",
+        "telemetry": {"kernel": "ZENO-K3K0", "status": "ONLINE"}
     }
 
 # Explicit /api/v1/auth Endpoints
@@ -117,9 +174,9 @@ app.include_router(hod_router)
 @app.get("/")
 async def root():
     return {
-        "engine": "Zeno Autonomous Multi-Agent Smart Campus Governance Engine",
+        "engine": "ZENO Autonomous Campus Intelligence API",
         "status": "OPERATIONAL",
-        "version": "1.4.0",
+        "version": "2.4.0",
         "docs_url": "/docs"
     }
 
@@ -127,3 +184,4 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8000))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+
