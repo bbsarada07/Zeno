@@ -5,6 +5,7 @@ import { HitlDrawer } from './HitlDrawer';
 import { CryptographicReceiptModal } from './CryptographicReceiptModal';
 import { NotificationDrawer } from './NotificationDrawer';
 import { GisMapModal } from '../gis/GisMapModal';
+import { Campus3DMap } from '../Campus3DMap';
 import { PlacementDashboard } from '../placement/PlacementDashboard';
 import { PlacementWorkspace } from '../PlacementWorkspace';
 import { WaiverPetitionHub } from '../waiver/WaiverPetitionHub';
@@ -229,25 +230,7 @@ export const ConsoleDashboard: React.FC = () => {
 
         {activeTab === 'gis' && (
           <div className="h-full p-4 sm:p-6 overflow-y-auto bg-transparent">
-            <div className="max-w-4xl mx-auto space-y-4">
-              <div className="p-6 zeno-glass-card flex items-center justify-between shadow-2xl">
-                <div>
-                  <h2 className="text-xl font-bold flex items-center space-x-2 text-white dark:text-white html-light:text-slate-900">
-                    <MapPin className="w-5 h-5 text-cyan-400" />
-                    <span>Spatial Campus GIS Indoor Map</span>
-                  </h2>
-                  <p className="text-sm text-slate-400 dark:text-slate-400 html-light:text-slate-600 mt-1">
-                    Indoor floor plan routing for Admin Block, Floor 2, Room CL-12.
-                  </p>
-                </div>
-                <button
-                  onClick={openGisNavigation}
-                  className="px-5 py-3 bg-cyan-500 text-slate-950 text-xs font-bold rounded-xl hover:bg-cyan-400 transition-all shadow-[0_0_20px_rgba(0,240,255,0.3)]"
-                >
-                  Open Full Canvas Map Modal
-                </button>
-              </div>
-            </div>
+            <Campus3DMap />
           </div>
         )}
 

@@ -147,4 +147,8 @@ export { queryZenoAgent, sendQueryToBackend, executeClientEnclaveFallback, dispa
 export type { AgentResponse, VoiceAgentResponse } from '../services/aiRoutingService';
 export { analyzePlacementProfile } from '../services/placementAgentService';
 export type { PlacementAnalysisResult } from '../services/placementAgentService';
+export { searchCampusLocations, findNearestFacility, calculateDistanceMeters } from '../services/spatialSearchService';
+export type { CampusLocation } from '../services/spatialSearchService';
+export { calculateCampusRoute } from '../services/campusRouter';
+export type { RouteResult, RouteStep } from '../services/campusRouter';
 

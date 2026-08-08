@@ -1,0 +1,225 @@
+{
+  "campusInfo": {
+    "name": "Vardhaman College of Engineering (VCE Campus)",
+    "code": "VCE-HYD-500031",
+    "centerCoordinates": [78.3842, 17.2451],
+    "boundaryPolygon": [
+      [78.3810, 17.2430],
+      [78.3880, 17.2430],
+      [78.3880, 17.2480],
+      [78.3810, 17.2480]
+    ]
+  },
+  "buildings": [
+    {
+      "id": "bldg-admin",
+      "name": "Admin Block & CSE Wing",
+      "code": "ADM-CSE",
+      "heightMeters": 28,
+      "floorsCount": 5,
+      "color": "#00F0FF",
+      "roofGlassEffect": true,
+      "coordinates": [78.3845, 17.2452],
+      "dimensions": { "width": 80, "length": 50 },
+      "floors": [
+        { "level": 0, "name": "Ground Floor", "facilities": ["Central Administrative Office", "Principal Office", "Main Auditorium"] },
+        { "level": 1, "name": "Floor 1", "facilities": ["CSE Faculty Lounge", "Server Room", "CL-01 Python Lab"] },
+        { "level": 2, "name": "Floor 2", "facilities": ["CSE HOD Cabin (Dr. V. Sharma)", "Room C-204", "CL-12 Operating Systems Lab"] },
+        { "level": 3, "name": "Floor 3", "facilities": ["AI Systems Research Lab", "Faculty Cabins 301-312"] },
+        { "level": 4, "name": "Floor 4", "facilities": ["High-Performance Computing Center", "Robotics Lab"] }
+      ]
+    },
+    {
+      "id": "bldg-ece",
+      "name": "ECE & EEE Academic Block",
+      "code": "ECE-BLOCK",
+      "heightMeters": 22,
+      "floorsCount": 4,
+      "color": "#10B981",
+      "roofGlassEffect": true,
+      "coordinates": [78.3832, 17.2445],
+      "dimensions": { "width": 70, "length": 45 },
+      "floors": [
+        { "level": 0, "name": "Ground Floor", "facilities": ["VLSI Design Lab", "Embedded Systems Center"] },
+        { "level": 1, "name": "Floor 1", "facilities": ["ECE HOD Office", "Lecture Halls 101-108"] }
+      ]
+    },
+    {
+      "id": "bldg-mech",
+      "name": "Mechanical & Civil Block",
+      "code": "MECH-BLOCK",
+      "heightMeters": 18,
+      "floorsCount": 3,
+      "color": "#F59E0B",
+      "roofGlassEffect": false,
+      "coordinates": [78.3860, 17.2455],
+      "dimensions": { "width": 75, "length": 40 },
+      "floors": [
+        { "level": 0, "name": "Ground Floor", "facilities": ["Cad-Cam Lab", "Manufacturing Workshop"] }
+      ]
+    },
+    {
+      "id": "bldg-[#sac]",
+      "name": "Student Activity Center & Canteen",
+      "code": "SAC-FC",
+      "heightMeters": 14,
+      "floorsCount": 2,
+      "color": "#F43F5E",
+      "roofGlassEffect": true,
+      "coordinates": [78.3850, 17.2438],
+      "dimensions": { "width": 60, "length": 60 },
+      "floors": [
+        { "level": 0, "name": "Ground Floor", "facilities": ["Central Canteen & Food Court", "Xerox & Stationery Shop", "HDFC Campus ATM"] },
+        { "level": 1, "name": "Floor 1", "facilities": ["Indoor Gymnasium", "Table Tennis Arena"] }
+      ]
+    },
+    {
+      "id": "bldg-[#lib]",
+      "name": "Central Knowledge Library",
+      "code": "CENT-LIB",
+      "heightMeters": 20,
+      "floorsCount": 3,
+      "color": "#A855F7",
+      "roofGlassEffect": true,
+      "coordinates": [78.3822, 17.2460],
+      "dimensions": { "width": 55, "length": 55 },
+      "floors": [
+        { "level": 0, "name": "Ground Floor", "facilities": ["Digital Reference Section", "IEEE Journal Archives"] }
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "id": "ent-cse-hod",
+      "name": "CSE HOD Cabin (Dr. V. Sharma)",
+      "category": "FACULTY",
+      "building": "Admin Block & CSE Wing",
+      "floor": 2,
+      "roomNumber": "C-201",
+      "facultyDetails": {
+        "name": "Dr. V. Sharma",
+        "designation": "Head of Department & Senior Professor",
+        "department": "Computer Science & Engineering",
+        "officeHours": "10:00 AM - 01:00 PM IST"
+      },
+      "coordinates": [78.3845, 17.2452],
+      "accessible": true
+    },
+    {
+      "id": "ent-prof-ahmed",
+      "name": "Prof. Ahmed Cabin (AI Specialist)",
+      "category": "FACULTY",
+      "building": "Admin Block & CSE Wing",
+      "floor": 2,
+      "roomNumber": "C-208",
+      "facultyDetails": {
+        "name": "Prof. Ahmed",
+        "designation": "Associate Professor",
+        "department": "Computer Science & Engineering",
+        "officeHours": "02:00 PM - 04:00 PM IST"
+      },
+      "coordinates": [78.3846, 17.2453],
+      "accessible": true
+    },
+    {
+      "id": "ent-prof-verma",
+      "name": "Prof. R. Verma Cabin (DSA Lead)",
+      "category": "FACULTY",
+      "building": "Admin Block & CSE Wing",
+      "floor": 2,
+      "roomNumber": "C-212",
+      "facultyDetails": {
+        "name": "Prof. R. Verma",
+        "designation": "Assistant Professor",
+        "department": "Computer Science & Engineering",
+        "officeHours": "11:00 AM - 01:00 PM IST"
+      },
+      "coordinates": [78.3847, 17.2452],
+      "accessible": true
+    },
+    {
+      "id": "ent-room-c204",
+      "name": "Classroom C-204 (Algorithms Lecture)",
+      "category": "ROOM",
+      "building": "Admin Block & CSE Wing",
+      "floor": 2,
+      "roomNumber": "C-204",
+      "coordinates": [78.3845, 17.2452],
+      "accessible": true
+    },
+    {
+      "id": "ent-lab-os",
+      "name": "CL-12 Operating Systems Laboratory",
+      "category": "SERVICE",
+      "building": "Admin Block & CSE Wing",
+      "floor": 2,
+      "roomNumber": "CL-12",
+      "coordinates": [78.3846, 17.2451],
+      "accessible": true
+    },
+    {
+      "id": "ent-canteen-main",
+      "name": "Central Campus Canteen & Food Court",
+      "category": "CANTEEN",
+      "building": "Student Activity Center & Canteen",
+      "floor": 0,
+      "roomNumber": "SAC-01",
+      "coordinates": [78.3850, 17.2438],
+      "accessible": true
+    },
+    {
+      "id": "ent-xerox-shop",
+      "name": "Xerox & Stationery Printing Shop",
+      "category": "SERVICE",
+      "building": "Student Activity Center & Canteen",
+      "floor": 0,
+      "roomNumber": "SAC-04",
+      "coordinates": [78.3851, 17.2439],
+      "accessible": true
+    },
+    {
+      "id": "ent-atm",
+      "name": "HDFC Campus ATM Point",
+      "category": "SERVICE",
+      "building": "Student Activity Center & Canteen",
+      "floor": 0,
+      "roomNumber": "ATM-01",
+      "coordinates": [78.3849, 17.2437],
+      "accessible": true
+    },
+    {
+      "id": "ent-medical-unit",
+      "name": "Campus Health & Medical Center",
+      "category": "SERVICE",
+      "building": "Admin Block & CSE Wing",
+      "floor": 0,
+      "roomNumber": "MED-01",
+      "coordinates": [78.3843, 17.2450],
+      "accessible": true
+    },
+    {
+      "id": "ent-sports-arena",
+      "name": "Outdoor Basketball & Sports Arena",
+      "category": "SPORTS",
+      "building": "Sports Grounds",
+      "floor": 0,
+      "coordinates": [78.3865, 17.2442],
+      "accessible": true
+    }
+  ],
+  "routingNodes": [
+    { "id": "n-gate", "name": "Main Entrance Gate", "coordinates": [78.3815, 17.2435], "floor": 0, "neighbors": ["n-sac", "n-lib"] },
+    { "id": "n-sac", "name": "SAC Food Court Walkway", "coordinates": [78.3850, 17.2438], "floor": 0, "neighbors": ["n-gate", "n-admin-g"] },
+    { "id": "n-lib", "name": "Library Walkway", "coordinates": [78.3822, 17.2460], "floor": 0, "neighbors": ["n-gate", "n-ece"] },
+    { "id": "n-ece", "name": "ECE Block Entrance", "coordinates": [78.3832, 17.2445], "floor": 0, "neighbors": ["n-lib", "n-admin-g"] },
+    { "id": "n-admin-g", "name": "Admin Block Ground Lobby", "coordinates": [78.3845, 17.2452], "floor": 0, "neighbors": ["n-sac", "n-ece", "n-admin-elev", "n-admin-stairs"] },
+    { "id": "n-admin-elev", "name": "Admin Block Elevator Bank", "coordinates": [78.3845, 17.2452], "floor": 0, "isElevator": true, "neighbors": ["n-admin-g", "n-admin-f2-elev"] },
+    { "id": "n-admin-stairs", "name": "Admin Block Main Staircase", "coordinates": [78.3845, 17.2452], "floor": 0, "isStairs": true, "neighbors": ["n-admin-g", "n-admin-f2-stairs"] },
+    { "id": "n-admin-f2-elev", "name": "Admin Block Floor 2 Elevator Lobby", "coordinates": [78.3845, 17.2452], "floor": 2, "isElevator": true, "neighbors": ["n-admin-elev", "n-admin-f2-corridor"] },
+    { "id": "n-admin-f2-stairs", "name": "Admin Block Floor 2 Staircase Lobby", "coordinates": [78.3845, 17.2452], "floor": 2, "isStairs": true, "neighbors": ["n-admin-stairs", "n-admin-f2-corridor"] },
+    { "id": "n-admin-f2-corridor", "name": "Floor 2 CSE Corridor", "coordinates": [78.3845, 17.2452], "floor": 2, "neighbors": ["n-admin-f2-elev", "n-admin-f2-stairs", "n-c204", "n-cse-hod", "n-prof-ahmed"] },
+    { "id": "n-c204", "name": "Room C-204 Doorway", "coordinates": [78.3845, 17.2452], "floor": 2, "neighbors": ["n-admin-f2-corridor"] },
+    { "id": "n-cse-hod", "name": "CSE HOD Doorway", "coordinates": [78.3845, 17.2452], "floor": 2, "neighbors": ["n-admin-f2-corridor"] },
+    { "id": "n-prof-ahmed", "name": "Prof. Ahmed Doorway", "coordinates": [78.3846, 17.2453], "floor": 2, "neighbors": ["n-admin-f2-corridor"] }
+  ]
+}
