@@ -23,37 +23,77 @@ export function dispatchVoiceQuery(prompt: string): VoiceAgentResponse {
   const q = prompt.toLowerCase();
 
   // 1. Academic Agent
-  if (q.includes('lecture') || q.includes('class') || q.includes('algorithms') || q.includes('grade') || q.includes('assignment') || q.includes('course') || q.includes('notes')) {
+  if (
+    q.includes('lecture') ||
+    q.includes('class') ||
+    q.includes('algorithms') ||
+    q.includes('grade') ||
+    q.includes('assignment') ||
+    q.includes('course') ||
+    q.includes('notes') ||
+    q.includes('timetable') ||
+    q.includes('syllabus') ||
+    q.includes('attendance')
+  ) {
     return {
       agentName: 'Academic Agent',
-      speechText: 'Activating Academic Agent. You have your Algorithms lecture today at 2:00 PM in Lecture Hall 3B with Professor Sharma.',
+      speechText:
+        'This voice agent is active. Activating Academic Agent... You have your Algorithms lecture today at 2:00 PM in Lecture Hall 3B with Professor Sharma. Your overall attendance is currently at 88%.',
       uiPayload: { subject: 'Algorithms', time: '2:00 PM', room: 'LH-3B' },
     };
   }
 
   // 2. Placement Agent
-  if (q.includes('internship') || q.includes('placement') || q.includes('job') || q.includes('resume') || q.includes('drive') || q.includes('ats')) {
+  if (
+    q.includes('internship') ||
+    q.includes('placement') ||
+    q.includes('job') ||
+    q.includes('resume') ||
+    q.includes('drive') ||
+    q.includes('ats') ||
+    q.includes('skill') ||
+    q.includes('dsa')
+  ) {
     return {
       agentName: 'Placement Agent',
-      speechText: 'Placement Agent here. Two new software engineering internships were posted yesterday by TechCorp and Innovate Labs. The application deadline is this Friday.',
+      speechText:
+        'This voice agent is active. Activating Placement Agent... Two new software engineering internships were posted yesterday by TechCorp and Innovate Labs. The application deadline is this Friday.',
       uiPayload: { drives: ['TechCorp', 'Innovate Labs'], deadline: 'Friday' },
     };
   }
 
   // 3. Service Agent
-  if (q.includes('ac') || q.includes('maintenance') || q.includes('hostel') || q.includes('canteen') || q.includes('shuttle') || q.includes('repair') || q.includes('helpdesk')) {
+  if (
+    q.includes('ac') ||
+    q.includes('maintenance') ||
+    q.includes('hostel') ||
+    q.includes('canteen') ||
+    q.includes('shuttle') ||
+    q.includes('repair') ||
+    q.includes('helpdesk') ||
+    q.includes('cafeteria')
+  ) {
     return {
       agentName: 'Service Agent',
-      speechText: "Activating Service Agent. I've logged a maintenance ticket for the hostel AC unit in Room 204B. A technician will inspect it between 3:00 PM and 5:00 PM today.",
+      speechText:
+        "This voice agent is active. Activating Service Agent... I've logged a maintenance ticket for the hostel AC unit in Room 204B. A technician will inspect it between 3:00 PM and 5:00 PM today.",
       uiPayload: { ticketId: 'SRV-8821', status: 'DISPATCHED' },
     };
   }
 
   // 4. Events Agent
-  if (q.includes('hackathon') || q.includes('event') || q.includes('fest') || q.includes('club') || q.includes('workshop')) {
+  if (
+    q.includes('hackathon') ||
+    q.includes('event') ||
+    q.includes('fest') ||
+    q.includes('club') ||
+    q.includes('workshop') ||
+    q.includes('sports')
+  ) {
     return {
       agentName: 'Events Agent',
-      speechText: 'Events Agent here. The Annual Campus Hackathon is scheduled for October 12th at the Student Activity Center. Registration opens tomorrow morning.',
+      speechText:
+        'This voice agent is active. Activating Events Agent... The Annual Campus Hackathon is scheduled for October 12th at the Student Activity Center. Registration opens tomorrow morning.',
       uiPayload: { event: 'Campus Hackathon', date: 'Oct 12', location: 'SAC' },
     };
   }
@@ -61,7 +101,8 @@ export function dispatchVoiceQuery(prompt: string): VoiceAgentResponse {
   // 5. Communication Agent (Fallback / General)
   return {
     agentName: 'Communication Agent',
-    speechText: 'Activating Communication Agent. There is one high-priority alert: the main library will close early today at 6:00 PM for maintenance.',
+    speechText:
+      'This voice agent is active. Activating Communication Agent... There is one high-priority alert: the main library will close early today at 6:00 PM for maintenance.',
     uiPayload: { alertType: 'HIGH_PRIORITY', systemNotice: 'Library early closure' },
   };
 }
@@ -143,7 +184,22 @@ export function executeClientEnclaveFallback(prompt: string, user: any): AgentRe
   if (q.includes('ats') || q.includes('resume') || q.includes('score')) {
     return {
       agent: 'PLACEMENT_PIPELINE',
-      markdown: `🎓 **ATS Resume Diagnostic & Impact Analysis**\n\n• **Overall ATS Score:** 87/100\n• **Keyword Match:** 91% | **Formatting:** 96% | **Project Quantification:** 78%\n\n⚠️ **Critical Issue:** Missing target role keywords: \`C++\` and \`Distributed System Design\`.\n\n👉 *Recommended Fix: Reorder technical skills section and rewrite Project 2 bullet points with quantified outcomes.*`,
+      markdown: `🎓 **ATS Resume Diagnostic & Impact Analysis**
+
+This voice agent is active. Activating Placement Agent... I have completed your resume ATS telemetry analysis. Your score is 87/100 with key skill gap recommendations below.
+
+### Visual Skill Gap Roadmap
+\`\`\`mermaid
+flowchart TD
+    Step1["1. Candidate Resume (87/100)"] --> Step2["2. DSA Gap: Trees & Graphs"]
+    Step2 --> Step3["3. System Design & REST"]
+    Step3 --> Step4["4. Target Role: SDE Ready"]
+\`\`\`
+
+### Verified Learning Resources
+* **DSA Practice:** [LeetCode Problem Set](https://leetcode.com/problemset/) | [Striver's A2Z DSA Sheet](https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/)
+* **System Design:** [The System Design Primer (GitHub)](https://github.com/donnemartin/system-design-primer) | [roadmap.sh System Design](https://roadmap.sh/system-design)
+* **Video Tutorials:** [freeCodeCamp DSA Full Course](https://www.youtube.com/watch?v=pkYVOmU3MgA) | [Gaurav Sen System Design](https://www.youtube.com/@GauravSensei)`,
       telemetry: { atsScore: 87, readinessScore: 78 },
     };
   }
@@ -151,7 +207,21 @@ export function executeClientEnclaveFallback(prompt: string, user: any): AgentRe
   if (q.includes('roadmap') || q.includes('microsoft') || q.includes('target role') || q.includes('skill gap')) {
     return {
       agent: 'PLACEMENT_PIPELINE',
-      markdown: `🎯 **Microsoft SDE Placement Roadmap (Target Readiness: 85%)**\n\n• **Phase 1 (Days 1-5):** Bridge DSA Gap — Trees & Graph Traversals (12 Medium Problems)\n• **Phase 2 (Days 6-10):** System Design Fundamentals — REST API Caching & Fault Tolerance\n• **Phase 3 (Days 11-14):** Resume Defense & Mock Recruiter Simulation\n\n*Targeting Drive Date: 94% Alignment Match.*`,
+      markdown: `🎯 **Microsoft SDE Placement Roadmap (Target Readiness: 85%)**
+
+This voice agent is active. Activating Placement Agent... Here is your adaptive 14-day technical placement roadmap.
+
+### Visual Placement Workflow
+\`\`\`mermaid
+flowchart TD
+    Phase1["Phase 1 (Days 1-5): Trees & Graph Traversals"] --> Phase2["Phase 2 (Days 6-10): System Design & Caching"]
+    Phase2 --> Phase3["Phase 3 (Days 11-14): Mock Interviews & Resume Defense"]
+\`\`\`
+
+### Learning & Practice Portals
+* **Roadmaps:** [roadmap.sh Developer Roadmaps](https://roadmap.sh/) | [CS Fundamentals Guide](https://roadmap.sh/computer-science)
+* **Interactive Practice:** [SQLBolt Interactive SQL](https://sqlbolt.com/) | [Coddy Interactive Lessons](https://coddy.tech/)
+* **Hackathons & Contests:** [Devfolio Hackathons](https://devfolio.co/hackathons) | [Unstop Student Challenges](https://unstop.com/hackathons)`,
       telemetry: { status: 'ONLINE', targetCompany: 'Microsoft' },
     };
   }
