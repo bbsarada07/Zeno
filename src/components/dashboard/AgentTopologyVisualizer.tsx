@@ -14,6 +14,7 @@ const SUB_AGENTS: Array<{
   accent: string;
 }> = [
   { id: 'agent-academic-gis', domain: 'ACADEMIC_GIS', label: 'ACADEMIC_GIS', model: 'Gemini-1.5-Pro', accent: '#00F0FF' },
+  { id: 'agent-academic-study', domain: 'ACADEMIC_STUDY_ENCLAVE', label: 'STUDY_ENCLAVE', model: 'Gemini-1.5-Pro/RAG', accent: '#A855F7' },
   { id: 'agent-placement-pipe', domain: 'PLACEMENT_PIPELINE', label: 'PLACEMENT_PIPELINE', model: 'Claude-3.5-Sonnet', accent: '#10B981' },
   { id: 'agent-events-router', domain: 'EVENTS_ROUTER', label: 'EVENTS_ROUTER', model: 'GPT-4o-Mini', accent: '#F59E0B' },
   { id: 'agent-gov-router', domain: 'GOVERNANCE_ROUTER', label: 'GOVERNANCE_ROUTER', model: 'Mistral-Large', accent: '#F43F5E' },
@@ -34,7 +35,7 @@ export const AgentTopologyVisualizer: React.FC<AgentTopologyProps> = ({ activeDo
       </div>
 
       {/* Sub-Agent Nodes Grid */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
         {SUB_AGENTS.map((agent) => {
           const isActive =
             activeDomain === agent.domain ||

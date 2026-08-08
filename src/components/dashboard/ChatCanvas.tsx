@@ -64,6 +64,8 @@ export const ChatCanvas: React.FC = () => {
 
   const quickActionChips = [
     { label: 'Where is my next lab?', icon: '📍', prompt: 'Where is my next lab?' },
+    { label: 'Quiz me on Trees & BST', icon: '📝', prompt: 'Quiz me on Trees & BST' },
+    { label: '10-day exam study plan', icon: '📅', prompt: '10-day exam study plan' },
     { label: 'Can I bunk Java Lab today?', icon: '⚠️', prompt: 'Can I bunk Java Lab today?' },
     { label: "Show today's section schedule", icon: '📅', prompt: "Show today's section schedule" },
     { label: 'Check academic standing & attendance', icon: '📊', prompt: 'Check academic standing & attendance' },

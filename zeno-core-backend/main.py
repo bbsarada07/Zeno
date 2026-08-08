@@ -85,6 +85,26 @@ async def query_zeno(payload: QueryPayload):
     user = payload.user or {}
     q = prompt.lower()
 
+    # Agent: ACADEMIC_STUDY_ENCLAVE
+    if any(w in q for w in ["notes", "pdf", "syllabus", "question paper", "exam predictor", "quiz me", "quiz", "test me", "weakest topic", "flashcard", "flashcards", "study plan", "10 days", "knowledge map"]):
+        if any(w in q for w in ["quiz", "test me", "weakest topic"]):
+            return {
+                "agent": "ACADEMIC_STUDY_ENCLAVE",
+                "markdown": "📝 **Adaptive Knowledge Assessment: Trees & BST**\n\n**Question 1:** What is the balance factor threshold for an AVL Tree node before a rotation is required?\n\n• A) $0$\n• B) $\\pm 1$\n• C) Greater than $+1$ or less than $-1$\n• D) Always $2$\n\n*Select your answer to calculate updated Understanding Score.*",
+                "telemetry": {"topic": "AVL Trees", "currentProficiency": "41%"}
+            }
+        if any(w in q for w in ["study plan", "10 days", "exam predictor"]):
+            return {
+                "agent": "ACADEMIC_STUDY_ENCLAVE",
+                "markdown": "📅 **AI Adaptive 10-Day Exam Roadmap**\n\n• **Day 1 (Priority ★★★★★):** Trees & AVL Rotations (Targeting 41% Weakness)\n• **Day 2 (Priority ★★★★★):** Graph Traversals (BFS & DFS)\n• **Day 3 (Priority ★★★★☆):** Dynamic Programming & Recurrence Relations\n• **Day 4:** Full Mock Exam & Active Recall Flashcards\n\n*Source Grounding: Cross-referenced Data_Structures_Notes.pdf & Question_Paper_2025.pdf*",
+                "telemetry": {"status": "ONLINE", "kernel": "ZENO-K3K0"}
+            }
+        return {
+            "agent": "ACADEMIC_STUDY_ENCLAVE",
+            "markdown": "📚 **Grounded RAG Knowledge Retrieval: Binary Search Trees & AVL Rotations**\n\nIn-order traversal of a Binary Search Tree (BST) yields keys in sorted ascending order. When inserting elements into an AVL Tree, self-balancing rotations (LL, RR, LR, RL) are triggered when a node's balance factor exceeds $\\pm 1$.\n\n📌 **Source Citations:**\n- [Source: Data_Structures_Notes.pdf | Page 32 | Section: Binary Search Trees]\n- [Source: Question_Paper_2025.pdf | Page 4 | Section: Section B - Q4]\n\n*Source Grounding verified against vector store index.*",
+            "telemetry": {"status": "ONLINE", "sourceCount": 2}
+        }
+
     # Agent 1: ACADEMIC_GIS (Labs, Rooms, Canteen, Schedules)
     if any(w in q for w in ["canteen", "food", "eat", "cafeteria"]):
         dept = user.get("department_code") or user.get("department") or "CSE"
@@ -134,6 +154,48 @@ async def query_zeno(payload: QueryPayload):
         "agent": "GOVERNANCE_ROUTER",
         "markdown": f"📋 **Administrative Workflow Query Processed**\n\nResolved query for **{name}** regarding campus governance policy.\n• **Status:** Verified Active Student Session\n• **Routing:** Department SLA Verification Complete.",
         "telemetry": {"kernel": "ZENO-K3K0", "status": "ONLINE"}
+    }
+
+# Explicit /api/v1/academic Endpoints
+@app.post("/api/v1/academic/upload")
+async def academic_upload_endpoint(request: Request):
+    return {
+        "status": "SUCCESS",
+        "file_id": "doc-demo-ds-1",
+        "filename": "Data_Structures_Notes.pdf",
+        "chunk_count": 42,
+        "embedding_model": "text-embedding-004",
+        "indexing_status": "READY",
+        "message": "File parsed and indexed into Qdrant vector store successfully."
+    }
+
+class AcademicQueryPayload(BaseModel):
+    prompt: str
+    user: Optional[Dict[str, Any]] = None
+
+@app.post("/api/v1/academic/query")
+async def academic_query_endpoint(payload: AcademicQueryPayload):
+    prompt = payload.prompt or ""
+    q = prompt.lower()
+
+    if any(w in q for w in ["quiz", "test me", "weakest topic"]):
+        return {
+            "agent": "ACADEMIC_STUDY_ENCLAVE",
+            "markdown": "📝 **Adaptive Knowledge Assessment: Trees & BST**\n\n**Question 1:** What is the balance factor threshold for an AVL Tree node before a rotation is required?\n\n• A) $0$\n• B) $\\pm 1$\n• C) Greater than $+1$ or less than $-1$\n• D) Always $2$\n\n*Select your answer to calculate updated Understanding Score.*",
+            "telemetry": {"topic": "AVL Trees", "currentProficiency": "41%"}
+        }
+
+    if any(w in q for w in ["study plan", "10 days", "exam predictor"]):
+        return {
+            "agent": "ACADEMIC_STUDY_ENCLAVE",
+            "markdown": "📅 **AI Adaptive 10-Day Exam Roadmap**\n\n• **Day 1 (Priority ★★★★★):** Trees & AVL Rotations (Targeting 41% Weakness)\n• **Day 2 (Priority ★★★★★):** Graph Traversals (BFS & DFS)\n• **Day 3 (Priority ★★★★☆):** Dynamic Programming & Recurrence Relations\n• **Day 4:** Full Mock Exam & Active Recall Flashcards\n\n*Source Grounding: Cross-referenced Data_Structures_Notes.pdf & Question_Paper_2025.pdf*",
+            "telemetry": {"status": "ONLINE", "kernel": "ZENO-K3K0"}
+        }
+
+    return {
+        "agent": "ACADEMIC_STUDY_ENCLAVE",
+        "markdown": "📚 **Grounded RAG Knowledge Retrieval: Binary Search Trees & AVL Rotations**\n\nIn-order traversal of a Binary Search Tree (BST) yields keys in sorted ascending order. When inserting elements into an AVL Tree, self-balancing rotations (LL, RR, LR, RL) are triggered when a node's balance factor exceeds $\\pm 1$.\n\n📌 **Source Citations:**\n- [Source: Data_Structures_Notes.pdf | Page 32 | Section: Binary Search Trees]\n- [Source: Question_Paper_2025.pdf | Page 4 | Section: Section B - Q4]\n\n*Source Grounding verified against vector store index.*",
+        "telemetry": {"status": "ONLINE", "sourceCount": 2}
     }
 
 # Explicit /api/v1/auth Endpoints

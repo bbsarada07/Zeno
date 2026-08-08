@@ -1,10 +1,35 @@
 import type { AgentDomain, IntentResult, EventCardData, EmailDraftData, GrievanceStepData } from '../types';
 import { CAMPUS_KNOWLEDGE_DICTIONARY } from '../services/aiRoutingService';
 
-export type AgentType = 'ACADEMIC_GIS' | 'PLACEMENT_PIPELINE' | 'EVENTS_ROUTER' | 'GOVERNANCE_ROUTER';
+export type AgentType =
+  | 'ACADEMIC_GIS'
+  | 'PLACEMENT_PIPELINE'
+  | 'EVENTS_ROUTER'
+  | 'GOVERNANCE_ROUTER'
+  | 'ACADEMIC_STUDY_ENCLAVE';
 
 export function classifyIntent(query: string): AgentType {
   const q = query.toLowerCase();
+
+  // Academic Study Enclave Intent Matching
+  if (
+    q.includes('notes') ||
+    q.includes('pdf') ||
+    q.includes('syllabus') ||
+    q.includes('question paper') ||
+    q.includes('exam predictor') ||
+    q.includes('quiz me') ||
+    q.includes('quiz') ||
+    q.includes('test me') ||
+    q.includes('weakest topic') ||
+    q.includes('flashcard') ||
+    q.includes('flashcards') ||
+    q.includes('study plan') ||
+    q.includes('10 days') ||
+    q.includes('knowledge map')
+  ) {
+    return 'ACADEMIC_STUDY_ENCLAVE';
+  }
 
   // Exact Quick Chip Match & Academic/GIS Keywords
   if (
@@ -178,6 +203,70 @@ export function classifyUserIntent(prompt: string): IntentResult {
       agentName: 'ACADEMIC_GIS',
       confidence: 0.99,
       summary: `📍 **Location Resolution:** ${place.name}\n• **Building:** ${place.building} - ${place.floor}\n• **Proximity:** ${place.proximity}\n• **Operating Hours:** ${place.hours}\n👉 *Action: Spatial map coordinates sent to Campus GIS View.*`,
+    };
+  }
+
+  // -------------------------------------------------------------
+  // 1.5 AGENT: ACADEMIC_STUDY_ENCLAVE (RAG, Study Planner, Quiz, Flashcards, Exam Predictor)
+  // -------------------------------------------------------------
+  if (agentType === 'ACADEMIC_STUDY_ENCLAVE') {
+    if (q.includes('quiz') || q.includes('test me') || q.includes('weakest topic')) {
+      return {
+        domain: 'ACADEMIC_STUDY_ENCLAVE',
+        agentName: 'ACADEMIC_STUDY_ENCLAVE',
+        confidence: 0.99,
+        summary: `📝 **Adaptive Knowledge Assessment: Trees & BST**\n\n**Question 1:** What is the balance factor threshold for an AVL Tree node before a rotation is required?\n\n• A) $0$\n• B) $\\pm 1$\n• C) Greater than $+1$ or less than $-1$\n• D) Always $2$\n\n*Select your answer to calculate updated Understanding Score.*`,
+        quizCard: {
+          id: 'q-avl-rotations',
+          topic: 'AVL Trees & Rotations',
+          question: 'What is the balance factor threshold for an AVL Tree node before a rotation is required?',
+          options: [
+            { label: 'A', text: '0', isCorrect: false },
+            { label: 'B', text: '± 1', isCorrect: false },
+            { label: 'C', text: 'Greater than +1 or less than -1', isCorrect: true },
+            { label: 'D', text: 'Always 2', isCorrect: false },
+          ],
+          explanation: 'In an AVL Tree, balance factor = height(left) - height(right). If balance factor is > +1 or < -1, node is unbalanced and requires rotation.',
+        },
+      };
+    }
+
+    if (q.includes('study plan') || q.includes('10 days') || q.includes('exam predictor')) {
+      return {
+        domain: 'ACADEMIC_STUDY_ENCLAVE',
+        agentName: 'ACADEMIC_STUDY_ENCLAVE',
+        confidence: 0.98,
+        summary: `📅 **AI Adaptive 10-Day Exam Roadmap**\n\n• **Day 1 (Priority ★★★★★):** Trees & AVL Rotations (Targeting 41% Weakness)\n• **Day 2 (Priority ★★★★★):** Graph Traversals (BFS & DFS)\n• **Day 3 (Priority ★★★★☆):** Dynamic Programming & Recurrence Relations\n• **Day 4:** Full Mock Exam & Active Recall Flashcards\n\n*Source Grounding: Cross-referenced Data_Structures_Notes.pdf & Question_Paper_2025.pdf*`,
+        studyPlanData: [
+          { dayNumber: 1, title: 'Trees & AVL Rotations', priorityStars: 5, topics: ['AVL Insertions', 'Single & Double Rotations', 'BST In-Order'], isWeaknessFocus: true },
+          { dayNumber: 2, title: 'Graph Traversals (BFS & DFS)', priorityStars: 5, topics: ['Adjacency Matrix', 'Cycle Detection', 'Dijkstra'], isWeaknessFocus: false },
+          { dayNumber: 3, title: 'Dynamic Programming', priorityStars: 4, topics: ['Memoization', 'Knapsack 0/1', 'LCS'], isWeaknessFocus: false },
+          { dayNumber: 4, title: 'Full Mock Assessment', priorityStars: 4, topics: ['Active Recall Flashcards', '2025 Past Paper Practice'], isWeaknessFocus: false },
+        ],
+      };
+    }
+
+    if (q.includes('flashcard') || q.includes('flashcards')) {
+      return {
+        domain: 'ACADEMIC_STUDY_ENCLAVE',
+        agentName: 'ACADEMIC_STUDY_ENCLAVE',
+        confidence: 0.97,
+        summary: `🎴 **Active Recall Flashcard: Binary Search Trees**\n\n**Front:** What is the worst-case time complexity for searching an element in an unbalanced Binary Search Tree?\n\n**Back:** $\\mathcal{O}(n)$ — occurs when the tree degenerates into a linear linked list structure.\n\n[Source: Data_Structures_Notes.pdf | Page 32 | Section: Binary Search Trees]`,
+        flashcardData: {
+          id: 'fc-bst-complexity',
+          topic: 'Trees & BST',
+          questionFront: 'What is the worst-case time complexity for searching in an unbalanced Binary Search Tree?',
+          answerBack: 'O(n) — occurs when the tree degenerates into a linear linked list structure.',
+          sourceCitation: 'Data_Structures_Notes.pdf | Page 32',
+        },
+      };
+    }
+
+    return {
+      domain: 'ACADEMIC_STUDY_ENCLAVE',
+      agentName: 'ACADEMIC_STUDY_ENCLAVE',
+      confidence: 0.96,
+      summary: `📚 **Grounded RAG Knowledge Retrieval: Binary Search Trees & AVL Rotations**\n\nIn-order traversal of a Binary Search Tree (BST) yields keys in sorted ascending order. When inserting elements into an AVL Tree, self-balancing rotations (LL, RR, LR, RL) are triggered when a node's balance factor exceeds $\\pm 1$.\n\n📌 **Source Citations:**\n- [Source: Data_Structures_Notes.pdf | Page 32 | Section: Binary Search Trees]\n- [Source: Question_Paper_2025.pdf | Page 4 | Section: Section B - Q4]\n\n*Source Grounding verified against vector store index.*`,
     };
   }
 

@@ -1,5 +1,5 @@
 export type UserRole = 'student' | 'faculty' | 'hod';
-export type NavigationTab = 'dashboard' | 'gis' | 'placement' | 'waivers';
+export type NavigationTab = 'dashboard' | 'gis' | 'placement' | 'waivers' | 'study';
 
 export interface InstitutionalTenant {
   id: string;
@@ -213,6 +213,7 @@ export type AgentDomain =
   | 'PLACEMENT_PIPELINE'
   | 'EVENTS_ROUTER'
   | 'GOVERNANCE_ROUTER'
+  | 'ACADEMIC_STUDY_ENCLAVE'
   | 'ACADEMIC'
   | 'PLACEMENT'
   | 'EVENTS'
@@ -245,6 +246,59 @@ export interface GrievanceStepData {
   officeContact: string;
 }
 
+export interface StudyDocument {
+  id: string;
+  filename: string;
+  sizeMb: number;
+  pageCount: number;
+  uploadTimestamp: string;
+  chunkCount: number;
+  status: 'indexing' | 'ready';
+  fileType: 'pdf' | 'pptx' | 'docx' | 'image';
+}
+
+export interface TopicProficiency {
+  id: string;
+  topicName: string;
+  scorePct: number;
+  statusLevel: 'MASTERED' | 'LEARNING' | 'WEAK' | 'CRITICAL DANGER';
+  color: string;
+  subtopics: string[];
+}
+
+export interface ExamPredictorTopic {
+  id: string;
+  topicName: string;
+  ratingStars: number;
+  appearancesCount: number;
+  avgMarks: number;
+  predictedPriority: 'High' | 'Medium' | 'Critical';
+}
+
+export interface QuizQuestionItem {
+  id: string;
+  topic: string;
+  question: string;
+  options: { label: string; text: string; isCorrect: boolean }[];
+  explanation: string;
+}
+
+export interface FlashcardItem {
+  id: string;
+  topic: string;
+  questionFront: string;
+  answerBack: string;
+  sourceCitation: string;
+}
+
+export interface StudyPlanDay {
+  dayNumber: number;
+  title: string;
+  priorityStars: number;
+  topics: string[];
+  isWeaknessFocus: boolean;
+}
+
 export interface IntentResult {
   domain: AgentDomain;
   agentName: string;
@@ -253,6 +307,9 @@ export interface IntentResult {
   eventCard?: EventCardData;
   emailDraft?: EmailDraftData;
   grievanceSteps?: GrievanceStepData[];
+  quizCard?: QuizQuestionItem;
+  flashcardData?: FlashcardItem;
+  studyPlanData?: StudyPlanDay[];
 }
 
 export interface PlacementApplicationDraft {

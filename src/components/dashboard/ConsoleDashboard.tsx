@@ -16,8 +16,9 @@ import { SparklineCanvas } from './SparklineCanvas';
 import { RaycastCommandPalette } from './RaycastCommandPalette';
 import { HodGovernanceInbox } from './HodGovernanceInbox';
 import { FacultyDashboardView } from './FacultyDashboardView';
+import { AcademicStudyEnclave } from './AcademicStudyEnclave';
 import { useApp } from '../../context/AppContext';
-import { MapPin, GraduationCap, FileCheck, ShieldCheck, ArrowRight, TrendingUp } from 'lucide-react';
+import { MapPin, GraduationCap, FileCheck, ShieldCheck, ArrowRight, TrendingUp, BookOpen, Brain } from 'lucide-react';
 
 const ROLE_ACCENT_MAP: Record<string, string> = {
   student: '#00F0FF',
@@ -191,9 +192,37 @@ export const ConsoleDashboard: React.FC = () => {
                       <span>Review HITL Approval Drawer</span>
                     </button>
                   </div>
+                  {/* Card 5: Academic Study Enclave Overview */}
+                  <div className="zeno-glass-card p-5 space-y-3 border-purple-500/30">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2 text-sm font-bold text-purple-400">
+                        <Brain className="w-4 h-4 text-purple-400" />
+                        <span>Academic Study Enclave</span>
+                      </div>
+                      <span className="text-xs font-mono text-purple-400 font-bold">RAG READY</span>
+                    </div>
+
+                    <p className="text-sm text-slate-300 dark:text-slate-300 html-light:text-slate-700 leading-relaxed">
+                      Data Structures & Algorithms vector store indexed. 2 pre-analyzed files, 41% weak topic in AVL Rotations.
+                    </p>
+
+                    <button
+                      onClick={() => setActiveTab('study')}
+                      className="w-full py-3 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 text-xs font-bold rounded-xl border border-purple-500/40 transition-all flex items-center justify-center space-x-2"
+                    >
+                      <BookOpen className="w-4 h-4 text-purple-400" />
+                      <span>Open Academic Study Enclave</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'study' && (
+          <div className="h-full p-4 sm:p-6 overflow-y-auto bg-transparent">
+            <AcademicStudyEnclave />
           </div>
         )}
 
