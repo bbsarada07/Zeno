@@ -1,5 +1,5 @@
 export type UserRole = 'student' | 'faculty' | 'hod';
-export type NavigationTab = 'dashboard' | 'gis' | 'placement' | 'waivers' | 'study';
+export type NavigationTab = 'dashboard' | 'gis' | 'placement' | 'waivers' | 'study' | 'communication';
 
 export interface InstitutionalTenant {
   id: string;

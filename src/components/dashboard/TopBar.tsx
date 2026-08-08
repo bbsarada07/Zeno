@@ -58,6 +58,7 @@ export const TopBar: React.FC = () => {
 
   const navItems: { id: NavigationTab; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard', label: 'Executive Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { id: 'communication', label: 'Communication Agent', icon: <MessageSquare className="w-4 h-4 text-orange-400" /> },
     { id: 'study', label: 'Academic Study Enclave', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'gis', label: 'Campus GIS Map', icon: <MapPin className="w-4 h-4" /> },
     { id: 'placement', label: 'Placement AI', icon: <GraduationCap className="w-4 h-4" /> },

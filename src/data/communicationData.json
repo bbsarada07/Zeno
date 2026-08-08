@@ -1,0 +1,195 @@
+{
+  "studentProfile": {
+    "studentId": "VCE-2451-22-733-001",
+    "name": "Bhavya (Alex Rivera)",
+    "email": "bhavya.rivera@csm.edu.in",
+    "college": "Vardhaman College of Engineering (VCE Campus)",
+    "department": "Computer Science & Engineering (AI & ML)",
+    "year": "3rd Year",
+    "semester": "Semester VI",
+    "section": "Section A",
+    "hostelStatus": "Hostel Block B - Room 304",
+    "role": "Student",
+    "enrolledClubs": ["AI & Robotics Club", "Coding Society", "ACM Student Chapter"]
+  },
+  "facultyMembers": [
+    {
+      "id": "fac-101",
+      "name": "Dr. V. Rao",
+      "designation": "Professor & Head of Department",
+      "department": "CSE (AI & ML)",
+      "officeLocation": "Admin Block, Floor 2, Room C-201",
+      "status": "Busy",
+      "statusNote": "In Meeting — Available at 02:30 PM",
+      "nextAvailableTime": "02:30 PM",
+      "officeHours": "10:00 AM - 01:00 PM | 02:30 PM - 04:30 PM",
+      "waitingCount": 2,
+      "availableSlots": ["02:30 PM - 02:45 PM", "02:45 PM - 03:00 PM", "03:15 PM - 03:30 PM", "04:00 PM - 04:15 PM"]
+    },
+    {
+      "id": "fac-102",
+      "name": "Prof. S. Ahmed",
+      "designation": "Associate Professor (AI Systems)",
+      "department": "CSE",
+      "officeLocation": "Admin Block, Floor 2, Room C-208",
+      "status": "Available",
+      "statusNote": "Available in Office (Room C-208)",
+      "nextAvailableTime": "Immediate",
+      "officeHours": "11:00 AM - 01:00 PM | 02:00 PM - 05:00 PM",
+      "waitingCount": 0,
+      "availableSlots": ["02:15 PM - 02:30 PM", "02:30 PM - 02:45 PM", "03:00 PM - 03:15 PM"]
+    },
+    {
+      "id": "fac-103",
+      "name": "Dr. Meera K.",
+      "designation": "Assistant Professor (DBMS Lead)",
+      "department": "CSE",
+      "officeLocation": "Admin Block, Floor 3, Room C-312",
+      "status": "In Class",
+      "statusNote": "Teaching CSE-B (CL-12 Operating Systems Lab)",
+      "nextAvailableTime": "03:30 PM",
+      "officeHours": "03:30 PM - 05:00 PM",
+      "waitingCount": 1,
+      "availableSlots": ["03:30 PM - 03:45 PM", "03:45 PM - 04:00 PM"]
+    }
+  ],
+  "appointments": [
+    {
+      "id": "app-001",
+      "facultyId": "fac-101",
+      "facultyName": "Dr. V. Rao",
+      "studentName": "Bhavya",
+      "department": "CSE AIML",
+      "year": "3rd Year",
+      "section": "Sec A",
+      "reason": "AI Capstone Project Discussion & GPU Allocation Request",
+      "requestedTime": "02:30 PM",
+      "status": "Accepted",
+      "queuePosition": 1,
+      "estimatedWaitMinutes": 10,
+      "createdTimestamp": "10:15 AM"
+    },
+    {
+      "id": "app-002",
+      "facultyId": "fac-101",
+      "facultyName": "Dr. V. Rao",
+      "studentName": "Rahul Verma",
+      "department": "CSE AIML",
+      "year": "3rd Year",
+      "section": "Sec A",
+      "reason": "Academic Doubt in Neural Network Optimization",
+      "requestedTime": "02:45 PM",
+      "status": "Waiting",
+      "queuePosition": 2,
+      "estimatedWaitMinutes": 25,
+      "createdTimestamp": "10:30 AM"
+    }
+  ],
+  "announcements": [
+    {
+      "id": "ann-201",
+      "title": "Final Semester Mid-Term Examination Timetable Released",
+      "category": "Examination",
+      "priority": "Critical",
+      "timestamp": "Today, 09:30 AM",
+      "postedBy": "Controller of Examinations",
+      "readCount": 1240,
+      "isBookmarked": true,
+      "content": "The Mid-Term Examination for 3rd Year B.Tech CSE (AIML) Semester VI will commence on March 15, 2026. Hall tickets can be downloaded from the portal starting March 10. Students with attendance below 75% must meet their respective HOD before March 12.",
+      "aiSummary": [
+        "Commencement Date: March 15, 2026 for Semester VI.",
+        "Hall Ticket Download: Available from March 10.",
+        "Attendance Rule: Below 75% candidates must report to HOD by March 12."
+      ]
+    },
+    {
+      "id": "ann-202",
+      "title": "Microsoft & Amazon SDE Placement Drive Registration Open",
+      "category": "Placement",
+      "priority": "High",
+      "timestamp": "Yesterday, 04:15 PM",
+      "postedBy": "Training & Placement Officer",
+      "readCount": 890,
+      "isBookmarked": false,
+      "content": "Eligible 3rd & 4th Year students are invited for the upcoming Microsoft and Amazon campus recruitment drives. Requirement: Minimum CGPA 8.0 with no standing backlogs. Last date to submit updated resume: Friday at 05:00 PM.",
+      "aiSummary": [
+        "Eligible Criteria: 3rd & 4th Year CSE/AIML with CGPA >= 8.0.",
+        "Deadline: Resume submission closes Friday, 05:00 PM.",
+        "Drive Dates: Online Coding Assessment scheduled for next Monday."
+      ]
+    },
+    {
+      "id": "ann-203",
+      "title": "Urgent Maintenance Notice: Hostel Block B Water Supply Shutdown",
+      "category": "Emergency",
+      "priority": "Critical",
+      "timestamp": "Today, 08:00 AM",
+      "postedBy": "Chief Warden Office",
+      "readCount": 310,
+      "isBookmarked": false,
+      "content": "Hostel Block B pipeline repairs will take place between 01:00 PM and 04:00 PM today. Water supply will be temporarily interrupted. Storage tanks on floors 2 & 3 remain operational.",
+      "aiSummary": [
+        "Affected Area: Hostel Block B.",
+        "Duration: 01:00 PM to 04:00 PM today.",
+        "Alternative: Floor 2 & 3 emergency overhead tanks operational."
+      ]
+    }
+  ],
+  "clubUpdates": [
+    {
+      "id": "club-301",
+      "clubName": "AI & Robotics Club",
+      "title": "Autonomous Drone Navigation Workshop & Hackathon Sprint",
+      "date": "Saturday, March 12 @ 10:00 AM",
+      "venue": "SAC Hall 2",
+      "unread": true,
+      "content": "Hands-on session on ROS2 and OpenCV drone tracking. Free hardware kits provided to all registered 3-member teams."
+    },
+    {
+      "id": "club-302",
+      "clubName": "Coding Society",
+      "title": "Weekly Competitive Coding Contest #42 (LeetCode Hard Special)",
+      "date": "Tonight @ 08:00 PM",
+      "venue": "Online Code Platform",
+      "unread": false,
+      "content": "Test your graph & dynamic programming speed. Top 3 coders win certificate of excellence and gift vouchers."
+    }
+  ],
+  "classDiscussions": [
+    {
+      "id": "disc-401",
+      "subject": "Deep Learning & Neural Networks (CS-601)",
+      "author": "Prof. Ahmed",
+      "timestamp": "2 hours ago",
+      "title": "Shared Lecture Notes PDF: PyTorch Convolutional Backpropagation",
+      "fileUrl": "PyTorch_CNN_Notes_L6.pdf",
+      "commentsCount": 14
+    },
+    {
+      "id": "disc-402",
+      "subject": "Distributed Operating Systems (CS-603)",
+      "author": "Dr. V. Rao",
+      "timestamp": "5 hours ago",
+      "title": "Lab Assignment 3 Deadline Extended to Sunday Midnight",
+      "fileUrl": "Lab3_Raft_Consensus_Spec.pdf",
+      "commentsCount": 22
+    }
+  ],
+  "grievances": [
+    {
+      "id": "grv-501",
+      "category": "IT Support",
+      "subject": "Wi-Fi Access Point Offline in Hostel Block B Floor 3",
+      "status": "Under Review",
+      "priority": "High",
+      "createdDate": "March 6, 2026",
+      "assignedDepartment": "Campus IT Infrastructure Cell",
+      "timeline": [
+        { "stage": "Submitted", "timestamp": "March 6, 09:00 AM", "completed": true },
+        { "stage": "AI Routed to IT Cell", "timestamp": "March 6, 09:01 AM", "completed": true },
+        { "stage": "Under Review by Technician", "timestamp": "March 6, 11:30 AM", "completed": true },
+        { "stage": "Issue Resolved", "timestamp": "Estimated 04:00 PM", "completed": false }
+      ]
+    }
+  ]
+}
