@@ -568,33 +568,6 @@ export const CommunicationDashboard: React.FC = () => {
               </div>
             </div>
           )}
-                          >
-                            Accept
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleFacultyAction(app.id, 'Rescheduled')}
-                          className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white text-xs font-bold transition-all"
-                        >
-                          Reschedule
-                        </button>
-                        <button
-                          onClick={() => {
-                            const fac = facultyList.find((f) => f.id === app.facultyId);
-                            if (fac) setActiveChatFaculty(fac);
-                          }}
-                          className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-all flex items-center space-x-1"
-                        >
-                          <MessageSquare className="w-3.5 h-3.5" />
-                          <span>Chat</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
