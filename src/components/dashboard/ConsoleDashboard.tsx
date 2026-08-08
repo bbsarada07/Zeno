@@ -6,6 +6,7 @@ import { CryptographicReceiptModal } from './CryptographicReceiptModal';
 import { NotificationDrawer } from './NotificationDrawer';
 import { GisMapModal } from '../gis/GisMapModal';
 import { PlacementDashboard } from '../placement/PlacementDashboard';
+import { PlacementWorkspace } from '../PlacementWorkspace';
 import { WaiverPetitionHub } from '../waiver/WaiverPetitionHub';
 import { RecruiterPerspectiveModal } from '../placement/RecruiterPerspectiveModal';
 import { InterviewCoachModal } from '../placement/InterviewCoachModal';
@@ -250,7 +251,12 @@ export const ConsoleDashboard: React.FC = () => {
           </div>
         )}
 
-        {activeTab === 'placement' && <PlacementDashboard />}
+        {activeTab === 'placement' && (
+          <div className="h-full p-4 sm:p-6 overflow-y-auto bg-transparent space-y-6">
+            <PlacementWorkspace />
+            <PlacementDashboard />
+          </div>
+        )}
 
         {activeTab === 'waivers' && <WaiverPetitionHub />}
       </main>
