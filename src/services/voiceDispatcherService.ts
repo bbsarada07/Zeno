@@ -1,93 +1,55 @@
+import { executeCentralOrchestrator } from './zenoOrchestrator';
+
 export interface VoiceDispatchResponse {
-  agentName: 'Academic Agent' | 'Placement Agent' | 'Events Agent' | 'Service Agent' | 'Communication Agent';
+  agentName: string;
   spokenText: string;
   markdownPayload?: string;
 }
 
+export async function processVoiceDispatchAsync(userQuery: string): Promise<VoiceDispatchResponse> {
+  const result = await executeCentralOrchestrator({
+    message: userQuery,
+    inputMode: 'voice',
+  });
+
+  return {
+    agentName: result.agentBadgeLabel,
+    spokenText: result.speechText,
+    markdownPayload: result.markdown,
+  };
+}
+
 export function processVoiceDispatch(userQuery: string): VoiceDispatchResponse {
+  // Sync fallback calling classification synchronously
   const q = userQuery.toLowerCase().trim();
 
-  // 1. Academic Agent
-  if (
-    q.includes('attendance') ||
-    q.includes('marks') ||
-    q.includes('class') ||
-    q.includes('grade') ||
-    q.includes('timetable') ||
-    q.includes('syllabus') ||
-    q.includes('exam') ||
-    q.includes('lecture')
-  ) {
-    return {
-      agentName: 'Academic Agent',
-      spokenText:
-        'This voice agent is active. Activating Academic Agent... Your overall attendance is currently at 88%. You have 92% in Data Structures and 84% in Database Management Systems.',
-      markdownPayload:
-        '### Academic Telemetry\n- **Data Structures:** 92%\n- **DBMS:** 84%\n- **Overall Attendance:** 88% (Eligible for all exams)',
-    };
-  }
-
-  // 2. Placement Agent
-  if (
-    q.includes('placement') ||
-    q.includes('internship') ||
-    q.includes('resume') ||
-    q.includes('ats') ||
-    q.includes('job') ||
-    q.includes('drive')
-  ) {
+  if (q.includes('placement') || q.includes('internship') || q.includes('resume') || q.includes('ats')) {
     return {
       agentName: 'Placement Agent',
-      spokenText:
-        'This voice agent is active. Activating Placement Agent... Two new software engineering internship drives were posted yesterday by TechCorp and Innovate Labs. Application closes this Friday.',
-      markdownPayload:
-        '### Placement Drives\n- **TechCorp:** SDE Intern (Apply by Friday)\n- **Innovate Labs:** AI/ML Intern (Apply by Saturday)',
+      spokenText: 'Activating Placement Agent... I have selected top verified tech internship portals and ATS resume analysis tools.',
+      markdownPayload: '### Placement & Internships\n• **TechCorp:** SDE Intern\n• **Innovate Labs:** UI Engineer Intern',
     };
   }
 
-  // 3. Service Agent
-  if (
-    q.includes('cafeteria') ||
-    q.includes('food') ||
-    q.includes('canteen') ||
-    q.includes('ac') ||
-    q.includes('shuttle') ||
-    q.includes('hostel') ||
-    q.includes('maintenance') ||
-    q.includes('repair')
-  ) {
-    return {
-      agentName: 'Service Agent',
-      spokenText:
-        'This voice agent is active. Activating Service Agent... Yes, the main campus cafeteria is open until 10:00 PM today.',
-      markdownPayload:
-        '### Service Status\n- **Main Canteen:** Open (08:00 AM - 10:00 PM)\n- **Shuttle Express:** Next departure in 12 minutes from Gate 2',
-    };
-  }
-
-  // 4. Events Agent
-  if (
-    q.includes('hackathon') ||
-    q.includes('event') ||
-    q.includes('fest') ||
-    q.includes('workshop') ||
-    q.includes('club') ||
-    q.includes('sports')
-  ) {
+  if (q.includes('hackathon') || q.includes('event') || q.includes('workshop')) {
     return {
       agentName: 'Events Agent',
-      spokenText:
-        'This voice agent is active. Activating Events Agent... The Annual Campus Hackathon is scheduled for this Friday at 10:00 AM in the SAC Hall.',
-      markdownPayload:
-        '### Upcoming Campus Events\n- **Campus Hackathon:** Friday, 10:00 AM @ Student Activity Center\n- **AI Workshop:** Saturday, 2:00 PM @ Auditorium B',
+      spokenText: 'Activating Events Agent... The Annual Campus AI Hackathon is open for registration.',
+      markdownPayload: '### Campus Events\n- **Campus Hackathon:** Friday, 10:00 AM @ SAC Hall',
     };
   }
 
-  // 5. Communication Agent (Fallback / General)
+  if (q.includes('where') || q.includes('ece') || q.includes('csm') || q.includes('block')) {
+    return {
+      agentName: 'Campus GPS Agent',
+      spokenText: 'Activating Campus GPS Agent... ECE Block is 240 meters walking distance from your current location.',
+      markdownPayload: '### Campus GPS Navigation\n- **Target:** ECE Block (Floor 1)',
+    };
+  }
+
   return {
-    agentName: 'Communication Agent',
-    spokenText:
-      'This voice agent is active. Activating Communication Agent... There is one urgent alert: the main campus library will close early today at 6:00 PM for maintenance.',
-    markdownPayload: '📢 **Campus Notification:** Main Library closing early at 6:00 PM today for IT maintenance.',
+    agentName: 'Academic Agent',
+    spokenText: `Activating Academic Agent... Processing query for ${userQuery}`,
+    markdownPayload: `### Academic Coursework\nProcessing: "${userQuery}"`,
   };
 }

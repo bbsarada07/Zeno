@@ -21,35 +21,55 @@ export interface VoiceAgentResponse {
 
 import { executeCentralOrchestrator } from './zenoOrchestrator';
 
+export async function dispatchVoiceQueryAsync(prompt: string): Promise<VoiceAgentResponse> {
+  const res = await executeCentralOrchestrator({
+    message: prompt,
+    inputMode: 'voice',
+  });
+
+  return {
+    agentName: (res.agentBadgeLabel.replace('✦', '').trim()) as VoiceAgentResponse['agentName'],
+    speechText: res.speechText,
+    uiPayload: { markdown: res.markdown },
+  };
+}
+
 export function dispatchVoiceQuery(prompt: string): VoiceAgentResponse {
-  const q = prompt.toLowerCase();
+  const q = prompt.toLowerCase().trim();
 
   if (q.includes('internship') || q.includes('placement') || q.includes('resume') || q.includes('ats') || q.includes('job')) {
     return {
       agentName: 'Placement Agent',
-      speechText: 'This voice agent is active. Activating Placement Agent... Two new software engineering internships were posted yesterday by TechCorp and Innovate Labs.',
+      speechText: 'Activating Placement Agent... I found top verified tech internship portals and ATS resume analysis tools.',
       uiPayload: { drives: ['TechCorp', 'Innovate Labs'], deadline: 'Friday' },
     };
   }
   if (q.includes('ac') || q.includes('maintenance') || q.includes('hostel') || q.includes('canteen') || q.includes('bonafide')) {
     return {
       agentName: 'Service Agent',
-      speechText: "This voice agent is active. Activating Service Agent... I've logged a maintenance ticket for the hostel AC unit in Room 204B.",
+      speechText: 'Activating Service Agent... You can download bonafide certificates directly from the Student Cell portal.',
       uiPayload: { ticketId: 'SRV-8821', status: 'DISPATCHED' },
     };
   }
   if (q.includes('hackathon') || q.includes('event') || q.includes('fest') || q.includes('workshop')) {
     return {
       agentName: 'Events Agent',
-      speechText: 'This voice agent is active. Activating Events Agent... The Annual Campus Hackathon is scheduled for October 12th at the SAC Hall.',
-      uiPayload: { event: 'Campus Hackathon', date: 'Oct 12' },
+      speechText: 'Activating Events Agent... The Annual Campus AI Hackathon is scheduled for Friday at the SAC Hall.',
+      uiPayload: { event: 'Campus Hackathon', date: 'Friday' },
+    };
+  }
+  if (q.includes('where') || q.includes('ece') || q.includes('csm') || q.includes('block')) {
+    return {
+      agentName: 'Academic Agent',
+      speechText: 'Activating Campus GPS Agent... ECE Block is 240 meters walking distance from your current location.',
+      uiPayload: { location: 'ECE Block' },
     };
   }
 
   return {
-    agentName: 'Communication Agent',
-    speechText: 'This voice agent is active. Activating Communication Agent... There is one high-priority alert: the main library will close early today at 6:00 PM.',
-    uiPayload: { alertType: 'HIGH_PRIORITY' },
+    agentName: 'Academic Agent',
+    speechText: `Activating Academic Agent... Processing coursework query for: ${prompt}`,
+    uiPayload: { topic: prompt },
   };
 }
 

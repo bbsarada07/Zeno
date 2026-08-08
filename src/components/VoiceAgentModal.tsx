@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, MicOff, X, Radio, Sparkles, Volume2, Cpu, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useApp } from '../context/AppContext';
 import { processVoiceDispatch } from '../services/voiceDispatcherService';
 import type { VoiceDispatchResponse } from '../services/voiceDispatcherService';
 
@@ -11,6 +12,7 @@ interface VoiceAgentModalProps {
 }
 
 export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClose, onDispatch }) => {
+  const { sendMessage } = useApp();
   const [isListening, setIsListening] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
@@ -113,24 +115,27 @@ export const VoiceAgentModal: React.FC<VoiceAgentModalProps> = ({ isOpen, onClos
     window.speechSynthesis.speak(utterance);
   };
 
-  // Trigger Immediate Dispatch & Seamless Modal Auto-Close
-  const executeDispatch = (finalText: string) => {
-    const textToProcess = finalText || transcript || 'Check attendance and grades';
+  // Trigger Immediate Dispatch & Central Orchestrator Routing
+  const executeDispatch = async (finalText: string) => {
+    const textToProcess = finalText || transcript;
+    if (!textToProcess || textToProcess.trim().length < 2) return;
 
-    // 1. Immediately close modal overlay to avoid UI lag
+    // 1. Immediately close modal overlay
     cleanupAudioStreams();
     onClose();
 
-    // 2. Process Voice Dispatcher Enclave
-    const response = processVoiceDispatch(textToProcess);
-    setActiveAgentBadge(response.agentName);
-
-    // 3. Trigger TTS Speech Synthesis
-    speakSynthesisText(response.spokenText);
-
-    // 4. Notify Parent Component / Chat System
-    if (onDispatch) {
-      onDispatch(response);
+    // 2. Route transcript through Central Orchestrator into Main Chat Surface
+    try {
+      const res = await sendMessage(textToProcess.trim(), 'voice');
+      if (res && onDispatch) {
+        onDispatch({
+          agentName: res.agentBadgeLabel,
+          spokenText: res.speechText,
+          markdownPayload: res.markdown,
+        });
+      }
+    } catch (_err) {
+      console.warn('[VOICE MODAL DISPATCH ERROR]', _err);
     }
   };
 

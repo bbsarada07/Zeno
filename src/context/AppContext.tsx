@@ -178,7 +178,7 @@ interface AppContextType {
     intentResult?: IntentResult;
     quickActionType?: 'gis' | 'placement' | 'waiver';
   }>;
-  sendMessage: (text: string) => void;
+  sendMessage: (text: string, inputMode?: 'text' | 'voice') => Promise<any>;
 
   // Notifications
   unreadCount: number;
@@ -560,12 +560,16 @@ Try typing a query about **Attendance**, **Placement Drives**, **Events/Hackatho
     },
   ]);
 
-  const sendMessage = async (text: string) => {
+  const sendMessage = async (text: string, inputMode: 'text' | 'voice' = 'text') => {
+    if (!text || text.trim().length < 2) return;
+
     const userMsgId = `usr-${Date.now()}`;
+    const userText = inputMode === 'voice' ? `🎙 You said:\n"${text}"` : text;
+
     const newMsg = {
       id: userMsgId,
       sender: 'user' as const,
-      text,
+      text: userText,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
@@ -586,7 +590,7 @@ Try typing a query about **Attendance**, **Placement Drives**, **Events/Hackatho
     try {
       const orchestratorRes = await executeCentralOrchestrator({
         message: text,
-        inputMode: 'text',
+        inputMode,
         userProfile,
       });
 
@@ -604,8 +608,6 @@ Try typing a query about **Attendance**, **Placement Drives**, **Events/Hackatho
         );
       }
 
-      const intent = classifyUserIntent(text);
-
       setMessages((prev) => [
         ...prev,
         {
@@ -613,21 +615,42 @@ Try typing a query about **Attendance**, **Placement Drives**, **Events/Hackatho
           sender: 'agent',
           text: orchestratorRes.markdown,
           agentBadgeLabel: orchestratorRes.agentBadgeLabel,
-          intentResult: intent,
           timestamp: orchestratorRes.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
+
+      // If voice input, trigger SpeechSynthesis for exact orchestrator response
+      if (inputMode === 'voice' && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        try {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(orchestratorRes.speechText || orchestratorRes.response);
+          utterance.rate = 1.0;
+          utterance.pitch = 1.0;
+          const voices = window.speechSynthesis.getVoices();
+          const englishVoice = voices.find(
+            (v) => v.lang.includes('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Samantha'))
+          );
+          if (englishVoice) utterance.voice = englishVoice;
+          window.speechSynthesis.speak(utterance);
+        } catch (_err) {
+          console.warn('[VOICE TTS NON-FATAL WARNING]', _err);
+        }
+      }
+
+      return orchestratorRes;
     } catch (e) {
       console.warn('[ZENO ORCHESTRATOR FALLBACK]', e);
       const fallback = executeClientEnclaveFallback(text, userProfile);
+
+      const fallbackText = fallback.markdown || 'I couldn\'t process that request right now. Please try again.';
 
       setMessages((prev) => [
         ...prev,
         {
           id: `agt-${Date.now()}`,
           sender: 'agent',
-          text: fallback.markdown || 'Zeno couldn\'t complete that request right now. Please try again.',
-          agentBadgeLabel: 'ZENO GENERAL ASSISTANT',
+          text: fallbackText,
+          agentBadgeLabel: '✦ ZENO GENERAL ASSISTANT',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);

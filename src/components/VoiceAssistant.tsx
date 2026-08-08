@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, MicOff, Volume2, VolumeX, Sparkles, X, Radio, Play, ShieldAlert, Cpu } from 'lucide-react';
+import { useApp } from '../context/AppContext';
 import { dispatchVoiceQuery } from '../services/aiRoutingService';
 import type { VoiceAgentResponse } from '../services/aiRoutingService';
 
@@ -90,9 +91,11 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ isOpen: external
     window.speechSynthesis.speak(utterance);
   };
 
+  const { sendMessage } = useApp();
+
   // Process User Speech or Preset Sample Text
-  const handleProcessVoiceInput = (inputText: string) => {
-    if (!inputText.trim()) return;
+  const handleProcessVoiceInput = async (inputText: string) => {
+    if (!inputText || inputText.trim().length < 2) return;
 
     setIsListening(false);
     setIsProcessing(true);
@@ -105,13 +108,22 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = ({ isOpen: external
       } catch (_e) {}
     }
 
-    setTimeout(() => {
-      const response = dispatchVoiceQuery(inputText);
-      setLastResponse(response);
-      setSelectedAgentBadge(response.agentName);
+    try {
+      const res = await sendMessage(inputText.trim(), 'voice');
+      if (res) {
+        setLastResponse({
+          agentName: res.agentBadgeLabel,
+          speechText: res.speechText,
+        });
+        setSelectedAgentBadge(res.agentBadgeLabel);
+      }
+    } catch (_err) {
+      console.warn('[VOICE PROCESSING ERROR]', _err);
+    } finally {
       setIsProcessing(false);
-      speakText(response.speechText);
-    }, 600);
+      setIsSpeaking(true);
+      setTimeout(() => setIsSpeaking(false), 3000);
+    }
   };
 
   // Toggle Microphone Listening
