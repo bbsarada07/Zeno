@@ -74,15 +74,18 @@ class OTPVerify(BaseModel):
     otp: Optional[str] = None
     token: Optional[str] = None
 
-class QueryPayload(BaseModel):
+# Request Data Model
+class QueryRequest(BaseModel):
     prompt: str
     user: Optional[Dict[str, Any]] = None
 
-# Dynamic Intent Routing Endpoint /api/v1/query
+# Dynamic Intent Routing Endpoint at /api/v1/query (with /query and /api/query route aliases)
 @app.post("/api/v1/query")
-async def query_zeno(payload: QueryPayload):
-    prompt = payload.prompt or ""
-    user = payload.user or {}
+@app.post("/query")
+@app.post("/api/query")
+async def handle_zeno_query(request: QueryRequest):
+    prompt = request.prompt or ""
+    user = request.user or {}
     q = prompt.lower()
 
     # Agent: ACADEMIC_STUDY_ENCLAVE

@@ -7,10 +7,28 @@ export const PRIMARY_BACKEND_URL =
   'https://zeno-k3k0.onrender.com';
 
 export interface AgentResponse {
-  agent: 'ACADEMIC_GIS' | 'PLACEMENT_PIPELINE' | 'EVENTS_ROUTER' | 'GOVERNANCE_ROUTER';
+  agent: 'ACADEMIC_GIS' | 'PLACEMENT_PIPELINE' | 'EVENTS_ROUTER' | 'GOVERNANCE_ROUTER' | 'ACADEMIC_STUDY_ENCLAVE';
   markdown: string;
   gisTarget?: { building: string; floor: number; room: string };
   telemetry?: Record<string, any>;
+}
+
+export async function sendQueryToBackend(promptText: string, userPayload: any): Promise<AgentResponse> {
+  const BASE_URL = PRIMARY_BACKEND_URL.replace(/\/$/, '');
+  const response = await fetch(`${BASE_URL}/api/v1/query`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ prompt: promptText, user: userPayload }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Server returned ${response.status}`);
+  }
+
+  return await response.json();
 }
 
 export async function queryZenoAgent(prompt: string, userProfile: any): Promise<AgentResponse> {
