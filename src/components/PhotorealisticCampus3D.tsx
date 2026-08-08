@@ -1,47 +1,42 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import campusData from '../data/campusData.json';
-import type { DijkstraResult } from '../services/dijkstraRouter';
+import { getCampusLocations } from '../services/dijkstraRouter';
+import type { CampusLocation, DijkstraResult } from '../services/dijkstraRouter';
 
 interface PhotorealisticCampus3DProps {
   selectedLocationId: string | null;
+  sourceLocationId: string;
   onSelectBuilding: (buildingId: string) => void;
   routeResult: DijkstraResult | null;
   is3DMode: boolean;
-  accessibilityMode?: boolean;
-}
-
-// Convert Geo GPS [lon, lat] relative to Campus Center to 3D World (X, Z) Coordinates
-const CENTER_LON = campusData.campusInfo.centerCoordinates[0];
-const CENTER_LAT = campusData.campusInfo.centerCoordinates[1];
-const SCALE_X = 12000;
-const SCALE_Z = 12000;
-
-function gpsTo3D(lon: number, lat: number): { x: number; z: number } {
-  const x = (lon - CENTER_LON) * SCALE_X;
-  const z = (CENTER_LAT - lat) * SCALE_Z;
-  return { x, z };
+  isNavigating: boolean;
+  selectedFloor?: number;
 }
 
 export const PhotorealisticCampus3D: React.FC<PhotorealisticCampus3DProps> = ({
   selectedLocationId,
+  sourceLocationId,
   onSelectBuilding,
   routeResult,
   is3DMode,
+  isNavigating,
+  selectedFloor = 1,
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
-  const [loadingModelStatus, setLoadingModelStatus] = useState<string>('Initializing WebGL 3D Scene...');
-  const [hoveredBuilding, setHoveredBuilding] = useState<string | null>(null);
+  const locations = getCampusLocations();
 
-  // Three.js References
+  // Three.js Scene References
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
-  const buildingMeshesRef = useRef<Map<string, THREE.Object3D>>(new Map());
-  const routeLineRef = useRef<THREE.Mesh | null>(null);
+  const buildingMeshesRef = useRef<Map<string, THREE.Group>>(new Map());
+  const routeMeshRef = useRef<THREE.Mesh | null>(null);
+  const particlesMeshRef = useRef<THREE.Points | null>(null);
+
+  // Target camera animation references
   const targetCamPosRef = useRef<THREE.Vector3 | null>(null);
   const targetCamLookRef = useRef<THREE.Vector3 | null>(null);
 
@@ -52,392 +47,306 @@ export const PhotorealisticCampus3D: React.FC<PhotorealisticCampus3DProps> = ({
     const width = container.clientWidth || 800;
     const height = container.clientHeight || 500;
 
-    // 1. THREE.JS SCENE CREATION
+    // 1. THREE.JS SCENE CREATION (Daylight Atmosphere)
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0f1d);
-    scene.fog = new THREE.FogExp2(0x0a0f1d, 0.002);
+    scene.background = new THREE.Color(0x0a1628);
+    scene.fog = new THREE.FogExp2(0x0a1628, 0.0018);
     sceneRef.current = scene;
 
     // 2. GOOGLE EARTH-STYLE PERSPECTIVE CAMERA
-    const camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
-    camera.position.set(0, 180, 220); // Aerial perspective
+    const camera = new THREE.PerspectiveCamera(45, width / height, 1, 1200);
+    camera.position.set(0, 190, 240); // Angled aerial view
     cameraRef.current = camera;
 
-    // 3. WEBGL RENDERER
+    // 3. WEBGL RENDERER WITH SHADOWS & FILMIC TONE MAPPING
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
+    renderer.toneMappingExposure = 1.15;
     rendererRef.current = renderer;
 
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
-    // 4. ORBIT CONTROLS (Google Earth Camera Pan/Rotate/Zoom)
+    // 4. ORBIT CONTROLS
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.maxPolarAngle = Math.PI / 2.05; // Prevent camera clipping under ground
-    controls.minDistance = 20;
-    controls.maxDistance = 450;
+    controls.maxPolarAngle = Math.PI / 2.05;
+    controls.minDistance = 25;
+    controls.maxDistance = 500;
     controls.target.set(0, 0, 0);
     controlsRef.current = controls;
 
-    // 5. PHOTOREALISTIC LIGHTING ENGINE
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    // 5. DAYLIGHT LIGHTING SYSTEM
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
     scene.add(ambientLight);
 
-    const hemiLight = new THREE.HemisphereLight(0xddeeff, 0x112233, 0.5);
-    scene.add(hemiLight);
-
-    const sunLight = new THREE.DirectionalLight(0xfff5ea, 1.4);
-    sunLight.position.set(120, 200, 100);
+    const sunLight = new THREE.DirectionalLight(0xfff8eb, 1.4);
+    sunLight.position.set(150, 220, 120);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 2048;
     sunLight.shadow.mapSize.height = 2048;
-    sunLight.shadow.camera.near = 10;
-    sunLight.shadow.camera.far = 500;
-    const shadowD = 200;
-    sunLight.shadow.camera.left = -shadowD;
-    sunLight.shadow.camera.right = shadowD;
-    sunLight.shadow.camera.top = shadowD;
-    sunLight.shadow.camera.bottom = -shadowD;
     scene.add(sunLight);
 
-    // 6. TERRAIN & GROUND MATERIALS (Grass, Asphalt, Plaza)
+    const hemiLight = new THREE.HemisphereLight(0x38bdf8, 0x0f172a, 0.4);
+    scene.add(hemiLight);
+
+    // 6. CAMPUS GREEN TERRAIN & ROADS
     const groundGeo = new THREE.PlaneGeometry(600, 600);
-    const groundMat = new THREE.MeshStandardMaterial({
-      color: 0x1a2e22, // Campus Lush Grass
-      roughness: 0.9,
-      metalness: 0.1,
-    });
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0x0d2117, roughness: 0.85, metalness: 0.1 });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     scene.add(ground);
 
-    // Concrete Plaza Central Base
-    const plazaGeo = new THREE.PlaneGeometry(350, 300);
-    const plazaMat = new THREE.MeshStandardMaterial({
-      color: 0x1e293b,
-      roughness: 0.6,
-    });
-    const plaza = new THREE.Mesh(plazaGeo, plazaMat);
-    plaza.rotation.x = -Math.PI / 2;
-    plaza.position.set(0, 0.1, 0);
-    plaza.receiveShadow = true;
-    scene.add(plaza);
+    // Roads Grid Layer
+    const roadGroup = new THREE.Group();
+    const roadMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 });
 
-    // Main Campus Asphalt Roads Network
-    createCampusRoadNetwork(scene);
+    // Main Campus Avenue Road
+    const mainRoadGeo = new THREE.PlaneGeometry(30, 360);
+    const mainRoad = new THREE.Mesh(mainRoadGeo, roadMat);
+    mainRoad.rotation.x = -Math.PI / 2;
+    mainRoad.position.set(-10, 0.2, 10);
+    mainRoad.receiveShadow = true;
+    roadGroup.add(mainRoad);
 
-    // Landscaping: Trees & Street Lights
-    createCampusLandscaping(scene);
+    // Ring Road East
+    const eastRoadGeo = new THREE.PlaneGeometry(300, 24);
+    const eastRoad = new THREE.Mesh(eastRoadGeo, roadMat);
+    eastRoad.rotation.x = -Math.PI / 2;
+    eastRoad.position.set(60, 0.2, 20);
+    eastRoad.receiveShadow = true;
+    roadGroup.add(eastRoad);
 
-    // 7. REAL 3D BUILDING GENERATOR & GLB LOADER ENGINE
-    const gltfLoader = new GLTFLoader();
-    const buildingMap = new Map<string, THREE.Object3D>();
+    scene.add(roadGroup);
 
-    campusData.blocks.forEach((block) => {
-      const { x, z } = gpsTo3D(block.coordinates[0], block.coordinates[1]);
-      const buildingGroup = new THREE.Group();
-      buildingGroup.position.set(x, 0, z);
+    // 7. BUILD 16 REALISTIC CAMPUS BUILDINGS & GROUNDS
+    const buildingMap = new Map<string, THREE.Group>();
 
-      // Attempt GLB Model Load with Fallback
-      const modelPath = `/models/campus/${block.code.toLowerCase()}.glb`;
-      gltfLoader.load(
-        modelPath,
-        (gltf) => {
-          const model = gltf.scene;
-          model.traverse((child) => {
-            if ((child as THREE.Mesh).isMesh) {
-              child.castShadow = true;
-              child.receiveShadow = true;
-            }
-          });
-          buildingGroup.add(model);
-        },
-        undefined,
-        () => {
-          // Architectural Procedural 3D Building Fallback
-          const bldgMesh = createProcedural3DBuilding(block);
-          buildingGroup.add(bldgMesh);
+    locations.forEach((loc) => {
+      const bldgGroup = new THREE.Group();
+      bldgGroup.position.set(loc.position3D[0], 0, loc.position3D[2]);
+      bldgGroup.userData = { id: loc.id, name: loc.name, floorsCount: loc.floorsCount };
+
+      const w = loc.dimensions.width;
+      const l = loc.dimensions.length;
+      const h = loc.heightMeters;
+
+      if (loc.category === 'GROUND') {
+        // Ground / Court Geometry (Volleyball, Basketball, Stadium)
+        const groundSurfaceGeo = new THREE.PlaneGeometry(w, l);
+        const groundSurfaceMat = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(loc.color),
+          roughness: 0.6,
+        });
+        const groundSurface = new THREE.Mesh(groundSurfaceGeo, groundSurfaceMat);
+        groundSurface.rotation.x = -Math.PI / 2;
+        groundSurface.position.y = 0.4;
+        bldgGroup.add(groundSurface);
+      } else {
+        // Architectural Building Mesh with Base, Roof & Windows
+        const bldgGeo = new THREE.BoxGeometry(w, h, l);
+        const bldgMat = new THREE.MeshStandardMaterial({
+          color: 0x334155, // Neutral daylight gray
+          roughness: 0.4,
+          metalness: 0.2,
+        });
+        const bldgMesh = new THREE.Mesh(bldgGeo, bldgMat);
+        bldgMesh.position.y = h / 2;
+        bldgMesh.castShadow = true;
+        bldgMesh.receiveShadow = true;
+        bldgGroup.add(bldgMesh);
+
+        // Glass Roof Accent
+        const roofGeo = new THREE.BoxGeometry(w * 0.9, 1.5, l * 0.9);
+        const roofMat = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(loc.color),
+          emissive: new THREE.Color(loc.color),
+          emissiveIntensity: 0.2,
+          roughness: 0.1,
+        });
+        const roof = new THREE.Mesh(roofGeo, roofMat);
+        roof.position.y = h + 0.75;
+        bldgGroup.add(roof);
+
+        // Floor Divider Lines
+        for (let fl = 1; fl < loc.floorsCount; fl++) {
+          const floorY = (h / loc.floorsCount) * fl;
+          const bandGeo = new THREE.BoxGeometry(w + 0.5, 0.4, l + 0.5);
+          const bandMat = new THREE.MeshBasicMaterial({ color: 0x1e293b });
+          const band = new THREE.Mesh(bandGeo, bandMat);
+          band.position.y = floorY;
+          bldgGroup.add(band);
         }
-      );
+      }
 
-      // Building UserData for Raycasting
-      buildingGroup.userData = { id: block.id, name: block.name, code: block.code };
-      scene.add(buildingGroup);
-      buildingMap.set(block.id, buildingGroup);
-      buildingMap.set(block.name, buildingGroup);
+      scene.add(bldgGroup);
+      buildingMap.set(loc.id, bldgGroup);
     });
 
     buildingMeshesRef.current = buildingMap;
-    setLoadingModelStatus('3D Campus Digital Twin Loaded');
 
-    // 8. RAYCASTING INTERACTION (CLICK BUILDINGS)
+    // 8. RAYCASTER FOR 3D CLICK SELECTION
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
 
-    const handlePointerDown = (event: MouseEvent) => {
+    const handlePointerDown = (e: MouseEvent) => {
       const rect = renderer.domElement.getBoundingClientRect();
-      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObjects(scene.children, true);
 
       for (const hit of intersects) {
-        let parent: THREE.Object3D | null = hit.object;
-        while (parent && parent !== scene) {
-          if (parent.userData && parent.userData.id) {
-            onSelectBuilding(parent.userData.id);
-            return;
-          }
-          parent = parent.parent;
+        let curr: THREE.Object3D | null = hit.object;
+        while (curr && !curr.userData?.id && curr.parent !== scene) {
+          curr = curr.parent;
+        }
+        if (curr && curr.userData?.id) {
+          onSelectBuilding(curr.userData.id);
+          break;
         }
       }
-    };
-
-    const handlePointerMove = (event: MouseEvent) => {
-      const rect = renderer.domElement.getBoundingClientRect();
-      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(scene.children, true);
-
-      let found: string | null = null;
-      for (const hit of intersects) {
-        let parent: THREE.Object3D | null = hit.object;
-        while (parent && parent !== scene) {
-          if (parent.userData && parent.userData.name) {
-            found = parent.userData.name;
-            break;
-          }
-          parent = parent.parent;
-        }
-        if (found) break;
-      }
-      setHoveredBuilding(found);
     };
 
     renderer.domElement.addEventListener('pointerdown', handlePointerDown);
-    renderer.domElement.addEventListener('pointermove', handlePointerMove);
 
-    // 9. ANIMATION & RENDER LOOP
+    // 9. ANIMATION LOOP
     let animId: number;
+    let clock = new THREE.Clock();
+
     const animate = () => {
       animId = requestAnimationFrame(animate);
+      const delta = clock.getDelta();
 
-      // Camera FlyTo Interpolation
-      if (targetCamPosRef.current && targetCamLookRef.current && controlsRef.current && cameraRef.current) {
+      // Smooth Camera FlyTo Easing Animation
+      if (targetCamPosRef.current && cameraRef.current && controlsRef.current) {
         cameraRef.current.position.lerp(targetCamPosRef.current, 0.05);
-        controlsRef.current.target.lerp(targetCamLookRef.current, 0.05);
+        if (targetCamLookRef.current) {
+          controlsRef.current.target.lerp(targetCamLookRef.current, 0.05);
+        }
+        controlsRef.current.update();
+
         if (cameraRef.current.position.distanceTo(targetCamPosRef.current) < 0.5) {
           targetCamPosRef.current = null;
           targetCamLookRef.current = null;
         }
+      } else {
+        controls.update();
       }
 
-      controls.update();
       renderer.render(scene, camera);
     };
-    animate();
 
-    // Resize Handler
-    const handleResize = () => {
-      if (!container) return;
-      const w = container.clientWidth;
-      const h = container.clientHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    };
-    window.addEventListener('resize', handleResize);
+    animate();
 
     return () => {
       cancelAnimationFrame(animId);
-      window.removeEventListener('resize', handleResize);
       renderer.domElement.removeEventListener('pointerdown', handlePointerDown);
-      renderer.domElement.removeEventListener('pointermove', handlePointerMove);
       renderer.dispose();
     };
   }, []);
 
-  // CAMERA FLY-TO & BUILDING SELECTION HIGHLIGHT
+  // 10. HIGHLIGHT SELECTED DESTINATION BUILDING ONLY (CRITICAL BUG FIX)
   useEffect(() => {
-    if (!selectedLocationId || !sceneRef.current) return;
-
-    const targetObj = buildingMeshesRef.current.get(selectedLocationId);
-    if (targetObj) {
-      const targetPos = targetObj.position;
-      targetCamLookRef.current = new THREE.Vector3(targetPos.x, 15, targetPos.z);
-      targetCamPosRef.current = new THREE.Vector3(targetPos.x, targetPos.y + 70, targetPos.z + 90);
-    }
-  }, [selectedLocationId]);
-
-  // DYNAMIC 3D DIJKSTRA ROUTE PATH RENDERING
-  useEffect(() => {
-    if (!sceneRef.current) return;
-    const scene = sceneRef.current;
-
-    // Remove existing route mesh
-    if (routeLineRef.current) {
-      scene.remove(routeLineRef.current);
-      routeLineRef.current.geometry.dispose();
-      routeLineRef.current = null;
-    }
-
-    if (!routeResult || !routeResult.pathNodeIds || routeResult.pathNodeIds.length < 2) return;
-
-    // Build 3D Waypoints Curve from Dijkstra Route Nodes
-    const waypoints: THREE.Vector3[] = [];
-    routeResult.pathNodeIds.forEach((nodeId: string) => {
-      const gNode = campusData.graphNodes.find((n) => n.id === nodeId);
-      if (gNode) {
-        const { x, z } = gpsTo3D(gNode.coordinates[0], gNode.coordinates[1]);
-        waypoints.push(new THREE.Vector3(x, 1.2, z));
+    buildingMeshesRef.current.forEach((group, id) => {
+      const isSelected = selectedLocationId === id;
+      const mesh = group.children[0] as THREE.Mesh;
+      if (mesh && mesh.material) {
+        const mat = mesh.material as THREE.MeshStandardMaterial;
+        if (isSelected) {
+          mat.color.setHex(0x0284c7);
+          mat.emissive = new THREE.Color(0x00f0ff);
+          mat.emissiveIntensity = 0.6;
+        } else {
+          mat.color.setHex(0x334155);
+          mat.emissive = new THREE.Color(0x000000);
+          mat.emissiveIntensity = 0.0;
+        }
       }
     });
 
-    if (waypoints.length > 1) {
-      const curve = new THREE.CatmullRomCurve3(waypoints);
-      const tubeGeo = new THREE.TubeGeometry(curve, 64, 1.8, 8, false);
-      const tubeMat = new THREE.MeshStandardMaterial({
-        color: 0x00f0ff,
-        emissive: 0x00aaff,
-        emissiveIntensity: 0.8,
-        roughness: 0.2,
-      });
-      const routeMesh = new THREE.Mesh(tubeGeo, tubeMat);
-      scene.add(routeMesh);
-      routeLineRef.current = routeMesh;
+    // Smooth camera flyTo target building
+    if (selectedLocationId) {
+      const loc = locations.find((l) => l.id === selectedLocationId);
+      if (loc && cameraRef.current && controlsRef.current) {
+        const targetX = loc.position3D[0];
+        const targetZ = loc.position3D[2];
+        const targetY = (selectedFloor - 1) * 6 + 15;
+
+        targetCamPosRef.current = new THREE.Vector3(targetX, targetY + 60, targetZ + 80);
+        targetCamLookRef.current = new THREE.Vector3(targetX, targetY, targetZ);
+      }
     }
+  }, [selectedLocationId, selectedFloor]);
+
+  // 11. RENDER 3D DIJKSTRA ROUTE LINE
+  useEffect(() => {
+    const scene = sceneRef.current;
+    if (!scene) return;
+
+    if (routeMeshRef.current) {
+      scene.remove(routeMeshRef.current);
+      routeMeshRef.current.geometry.dispose();
+      routeMeshRef.current = null;
+    }
+
+    if (!routeResult || routeResult.pathCoordinates.length < 2) return;
+
+    const points = routeResult.pathCoordinates.map(
+      (pt) => new THREE.Vector3(pt[0], 1.8, pt[2])
+    );
+
+    const curve = new THREE.CatmullRomCurve3(points);
+    const tubeGeo = new THREE.TubeGeometry(curve, 64, 1.2, 8, false);
+    const tubeMat = new THREE.MeshBasicMaterial({
+      color: 0x00f0ff,
+      wireframe: false,
+    });
+
+    const routeMesh = new THREE.Mesh(tubeGeo, tubeMat);
+    scene.add(routeMesh);
+    routeMeshRef.current = routeMesh;
   }, [routeResult]);
 
   return (
-    <div className="w-full h-full relative overflow-hidden select-none bg-[#030712]">
-      <div ref={mountRef} className="w-full h-[520px] rounded-2xl overflow-hidden cursor-grab active:cursor-grabbing" />
+    <div className="w-full h-full relative overflow-hidden select-none rounded-2xl bg-[#0A1628]">
+      {/* 3D CANVAS MOUNT */}
+      <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
 
-      {/* Floating Status & Camera Controls Bar */}
-      <div className="absolute top-4 left-4 z-20 flex items-center space-x-2 font-mono text-xs">
-        <span className="px-3 py-1.5 rounded-xl bg-slate-950/90 border border-cyan-500/40 text-cyan-300 font-bold backdrop-blur-md shadow-lg flex items-center space-x-2">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-          <span>{loadingModelStatus}</span>
-        </span>
+      {/* FLOATING 3D BUILDING LABELS */}
+      <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
+        {locations.map((loc) => {
+          const isSelected = selectedLocationId === loc.id;
+          const isSource = sourceLocationId === loc.id || sourceLocationId.includes(loc.code.toLowerCase());
 
-        {hoveredBuilding && (
-          <span className="px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700 text-white font-bold backdrop-blur-md shadow-lg">
-            🏢 {hoveredBuilding}
-          </span>
-        )}
+          return (
+            <div
+              key={loc.id}
+              className={`absolute transform -translate-x-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[10px] font-mono font-bold transition-all duration-300 pointer-events-auto cursor-pointer ${
+                isSelected
+                  ? 'bg-blue-600 text-white border-2 border-cyan-400 shadow-[0_0_20px_rgba(0,240,255,0.8)] scale-110 z-30'
+                  : isSource
+                  ? 'bg-teal-600 text-white border border-teal-300 shadow-md z-20'
+                  : 'bg-slate-950/80 text-slate-300 border border-slate-800 hover:border-cyan-500/50'
+              }`}
+              style={{
+                left: `${50 + (loc.position3D[0] / 300) * 45}%`,
+                top: `${48 + (loc.position3D[2] / 300) * 45}%`,
+              }}
+              onClick={() => onSelectBuilding(loc.id)}
+            >
+              {loc.name}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 };
-
-// ==================== PROCEDURAL 3D ARCHITECTURAL GENERATOR ====================
-function createProcedural3DBuilding(block: any): THREE.Group {
-  const group = new THREE.Group();
-  const width = block.dimensions.width * 0.45;
-  const length = block.dimensions.length * 0.45;
-  const height = block.heightMeters * 0.85;
-
-  // Main Concrete Facade Base
-  const wallGeo = new THREE.BoxGeometry(width, height, length);
-  const wallMat = new THREE.MeshStandardMaterial({
-    color: parseInt(block.color.replace('#', '0x')) || 0x1e293b,
-    roughness: 0.5,
-    metalness: 0.2,
-  });
-  const walls = new THREE.Mesh(wallGeo, wallMat);
-  walls.position.y = height / 2;
-  walls.castShadow = true;
-  walls.receiveShadow = true;
-  group.add(walls);
-
-  // Glass Window Panels Layer
-  const windowGeo = new THREE.BoxGeometry(width + 0.4, height * 0.75, length + 0.4);
-  const windowMat = new THREE.MeshStandardMaterial({
-    color: 0x00f0ff,
-    roughness: 0.1,
-    metalness: 0.9,
-    transparent: true,
-    opacity: 0.45,
-  });
-  const windowPanes = new THREE.Mesh(windowGeo, windowMat);
-  windowPanes.position.y = height / 2;
-  group.add(windowPanes);
-
-  // Roof Parapet / Skylight Cap
-  const roofGeo = new THREE.BoxGeometry(width * 0.85, 2, length * 0.85);
-  const roofMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.8 });
-  const roof = new THREE.Mesh(roofGeo, roofMat);
-  roof.position.y = height + 1;
-  roof.castShadow = true;
-  group.add(roof);
-
-  // Entrance Portico
-  const doorGeo = new THREE.BoxGeometry(width * 0.35, 6, 4);
-  const doorMat = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.3 });
-  const door = new THREE.Mesh(doorGeo, doorMat);
-  door.position.set(0, 3, length / 2 + 1);
-  group.add(door);
-
-  return group;
-}
-
-// ==================== CAMPUS ROADS & INFRASTRUCTURE ====================
-function createCampusRoadNetwork(scene: THREE.Scene) {
-  const roadMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 });
-
-  // Main South-North Spine Road
-  const road1Geo = new THREE.PlaneGeometry(16, 400);
-  const road1 = new THREE.Mesh(road1Geo, roadMat);
-  road1.rotation.x = -Math.PI / 2;
-  road1.position.set(0, 0.15, 0);
-  road1.receiveShadow = true;
-  scene.add(road1);
-
-  // East-West Central Avenue
-  const road2Geo = new THREE.PlaneGeometry(380, 16);
-  const road2 = new THREE.Mesh(road2Geo, roadMat);
-  road2.rotation.x = -Math.PI / 2;
-  road2.position.set(0, 0.15, -20);
-  road2.receiveShadow = true;
-  scene.add(road2);
-}
-
-// ==================== CAMPUS LANDSCAPING (TREES & LIGHTS) ====================
-function createCampusLandscaping(scene: THREE.Scene) {
-  const trunkGeo = new THREE.CylinderGeometry(0.8, 1.2, 8, 8);
-  const trunkMat = new THREE.MeshStandardMaterial({ color: 0x3d2314 });
-
-  const foliageGeo = new THREE.ConeGeometry(5, 12, 8);
-  const foliageMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.8 });
-
-  // Scatter Trees around campus walkways
-  const treePositions = [
-    [-60, -40], [60, -40], [-80, 40], [80, 40], [-40, -100], [40, -100], [-100, 100], [100, 100]
-  ];
-
-  treePositions.forEach(([x, z]) => {
-    const treeGroup = new THREE.Group();
-    const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-    trunk.position.y = 4;
-    trunk.castShadow = true;
-    treeGroup.add(trunk);
-
-    const foliage = new THREE.Mesh(foliageGeo, foliageMat);
-    foliage.position.y = 12;
-    foliage.castShadow = true;
-    treeGroup.add(foliage);
-
-    treeGroup.position.set(x, 0, z);
-    scene.add(treeGroup);
-  });
-}

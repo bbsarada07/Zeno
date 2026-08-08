@@ -37,7 +37,7 @@ export function calculateCampusRoute(
   targetNodeId: string,
   preferElevator: boolean = true
 ): RouteResult | null {
-  const nodes = campusData.routingNodes as RoutingNode[];
+  const nodes = (campusData.routingNodes as unknown) as RoutingNode[];
   const nodeMap = new Map<string, RoutingNode>();
   nodes.forEach((n) => nodeMap.set(n.id, n));
 
