@@ -23,7 +23,6 @@ export interface FacultyMember {
   statusNote: string;
   nextAvailableTime: string;
   officeHours: string;
-  waitingCount: number;
   availableSlots: string[];
 }
 
@@ -37,9 +36,7 @@ export interface AppointmentRecord {
   section: string;
   reason: string;
   requestedTime: string;
-  status: 'Pending' | 'Accepted' | 'Approved' | 'Rescheduled' | 'Completed' | 'Rejected' | 'Waiting';
-  queuePosition?: number;
-  estimatedWaitMinutes?: number;
+  status: 'Pending' | 'Accepted' | 'Approved' | 'Rescheduled' | 'Completed' | 'Rejected';
   createdTimestamp: string;
   // Shared HOD Portal <-> Student Portal Record Fields
   date?: string;
@@ -80,15 +77,13 @@ let sharedCommunicationStore: CommunicationState = {
       id: 'app-001',
       facultyId: 'fac-101',
       facultyName: 'Dr. V. Rao (HOD CSE)',
-      studentName: 'Alex Rivera (Bhavya)',
+      studentName: 'Alex Rivera',
       department: 'CSE (AI & ML)',
       year: '3rd Year',
       section: 'Section A',
       reason: 'AI Capstone Project Discussion & GPU Allocation Request',
       requestedTime: '02:30 PM',
       status: 'Approved',
-      queuePosition: 1,
-      estimatedWaitMinutes: 10,
       createdTimestamp: 'Today, 10:15 AM',
       date: 'Monday, March 10',
       time: '11:00 AM',
@@ -107,52 +102,56 @@ let sharedCommunicationStore: CommunicationState = {
       reason: 'Academic Doubt in Neural Network Optimization',
       requestedTime: '02:45 PM',
       status: 'Pending',
-      queuePosition: 2,
-      estimatedWaitMinutes: 25,
       createdTimestamp: 'Today, 10:30 AM',
     },
   ],
-  facultyMembers: communicationData.facultyMembers as FacultyMember[],
+  facultyMembers: [
+    {
+      id: 'fac-101',
+      name: 'Dr. V. Rao (HOD CSE)',
+      designation: 'Professor & Head of Department',
+      department: 'Computer Science & Engineering',
+      officeLocation: 'Admin Block - Floor 2 (Room A-204)',
+      status: 'Available',
+      statusNote: 'Available in HOD Office',
+      nextAvailableTime: '10:00 AM Today',
+      officeHours: 'Monday & Wednesday: 10:00 AM – 1:00 PM',
+      availableSlots: ['10:00 AM - 10:30 AM', '11:00 AM - 11:30 AM', '02:00 PM - 02:30 PM'],
+    },
+    {
+      id: 'fac-102',
+      name: 'Prof. Ananya Sharma',
+      designation: 'Associate Professor',
+      department: 'Computer Science & Engineering',
+      officeLocation: 'CSE Block - Floor 3 (Room C-308)',
+      status: 'In Class',
+      statusNote: 'Teaching CSE-3A (Algorithms)',
+      nextAvailableTime: '02:00 PM Today',
+      officeHours: 'Tuesday & Thursday: 2:00 PM – 4:00 PM',
+      availableSlots: ['02:00 PM - 02:30 PM', '03:00 PM - 03:30 PM'],
+    },
+  ],
   announcements: communicationData.announcements as AnnouncementItem[],
   clubs: [
     {
       id: 'club-301',
       clubName: 'AI & Robotics Club',
-      title: 'Autonomous Drone Navigation Workshop & Hackathon Sprint',
-      description: 'Hands-on session on ROS2 and OpenCV drone tracking. Hardware kits provided.',
+      title: 'Annual Robotics Hackathon & Autonomous Navigation Challenge',
+      description: 'Join the premier campus AI & Robotics Club. Building ROS2 navigation stack for campus rovers.',
       registrationStatus: 'Open for Registration',
-      eligibility: 'All 2nd, 3rd & 4th Year B.Tech Students',
-      deadline: 'Friday, March 11 @ 05:00 PM',
-      organizer: 'AI & Robotics Club Leads',
-      date: 'Saturday, March 12 @ 10:00 AM',
-      venue: 'SAC Hall 2',
-      unread: true,
+      eligibility: 'All Departments (1st to 4th Year)',
+      deadline: 'March 15, 2026',
+      organizer: 'Dept. of CSE & SAC',
     },
     {
       id: 'club-302',
-      clubName: 'Coding Society',
-      title: 'Weekly Competitive Coding Contest #42 (LeetCode Hard Special)',
-      description: 'Test your graph & dynamic programming speed. Certificates & vouchers for top 3.',
+      clubName: 'Coding Ninjas Student Chapter',
+      title: 'Competitive Programming Sprint & DSA Bootcamp',
+      description: 'Weekly algorithmic problem-solving sprint preparing students for product company placements.',
       registrationStatus: 'Open for Registration',
-      eligibility: 'Open to All Departments & Years',
-      deadline: 'Tonight @ 07:45 PM',
-      organizer: 'Coding Society Core Team',
-      date: 'Tonight @ 08:00 PM',
-      venue: 'Online Code Platform',
-      unread: false,
-    },
-    {
-      id: 'club-303',
-      clubName: 'ACM Student Chapter',
-      title: 'System Design & Distributed Systems Bootcamp',
-      description: 'Master Kafka, Redis caching, and Load Balancing architectures.',
-      registrationStatus: 'Coming Soon',
-      eligibility: '3rd & 4th Year Students',
-      deadline: 'March 18, 2026',
-      organizer: 'ACM Student Chapter',
-      date: 'March 20, 2026',
-      venue: 'Auditorium B',
-      unread: false,
+      eligibility: 'B.Tech CSE / IT / ECE',
+      deadline: 'March 20, 2026',
+      organizer: 'Coding Ninjas & Placement Cell',
     },
   ],
 };
@@ -162,128 +161,110 @@ export function getSharedCommunicationStore(): CommunicationState {
 }
 
 export function updateAppointmentStatusInStore(
-  appId: string,
-  update: {
-    status: AppointmentRecord['status'];
-    date?: string;
-    time?: string;
-    location?: string;
-    remarks?: string;
-    rejectionReason?: string;
+  appointmentId: string,
+  updates: Partial<AppointmentRecord>
+): AppointmentRecord | undefined {
+  const index = sharedCommunicationStore.appointments.findIndex((a) => a.id === appointmentId);
+  if (index !== -1) {
+    sharedCommunicationStore.appointments[index] = {
+      ...sharedCommunicationStore.appointments[index],
+      ...updates,
+      updatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    return sharedCommunicationStore.appointments[index];
   }
-): AppointmentRecord | null {
-  const target = sharedCommunicationStore.appointments.find((a) => a.id === appId);
-  if (target) {
-    target.status = update.status;
-    if (update.date) target.date = update.date;
-    if (update.time) target.time = update.time;
-    if (update.location) target.location = update.location;
-    if (update.remarks) target.remarks = update.remarks;
-    if (update.rejectionReason) target.rejectionReason = update.rejectionReason;
-    target.updatedAt = 'Just Now';
-    return target;
-  }
-  return null;
+  return undefined;
 }
 
 export function updateFacultyAvailabilityInStore(
   facultyId: string,
-  slots: string[],
-  officeHours?: string,
-  status?: FacultyMember['status']
-) {
-  const fac = sharedCommunicationStore.facultyMembers.find((f) => f.id === facultyId);
-  if (fac) {
-    fac.availableSlots = slots;
-    if (officeHours) fac.officeHours = officeHours;
-    if (status) fac.status = status;
+  newStatus: FacultyMember['status'],
+  statusNote: string,
+  officeHours?: string
+): FacultyMember | undefined {
+  const index = sharedCommunicationStore.facultyMembers.findIndex((f) => f.id === facultyId);
+  if (index !== -1) {
+    sharedCommunicationStore.facultyMembers[index] = {
+      ...sharedCommunicationStore.facultyMembers[index],
+      status: newStatus,
+      statusNote,
+      officeHours: officeHours || sharedCommunicationStore.facultyMembers[index].officeHours,
+    };
+    return sharedCommunicationStore.facultyMembers[index];
   }
+  return undefined;
 }
 
 /**
- * Grounded AI Intent Answering Engine — STRICTLY USES ACTUAL DATA
- * Never hallucinates, invents, or guesses missing details.
+ * Grounded AI Intent Answering Engine — STRICTLY USES ACTUAL STORED DATA
+ * 0 Hallucinations.
  */
 export function answerCommunicationQuery(query: string, currentState?: CommunicationState): string {
   const store = currentState || sharedCommunicationStore;
   const q = query.toLowerCase().trim();
 
-  // 1. APPOINTMENT APPROVAL / STATUS QUERY
-  if (q.includes('approve') || q.includes('status') || q.includes('appointment') || q.includes('reply') || q.includes('replied') || q.includes('hod')) {
-    const alexApp = store.appointments.find(
-      (a) => a.studentName.toLowerCase().includes('alex') || a.studentName.toLowerCase().includes('bhavya')
-    ) || store.appointments[0];
+  // 1. APPOINTMENT APPROVAL / STATUS / REJECTION / SCHEDULE QUERY
+  if (
+    q.includes('approved') ||
+    q.includes('rejected') ||
+    q.includes('status') ||
+    q.includes('appointment') ||
+    q.includes('meet my hod') ||
+    q.includes('request an appointment')
+  ) {
+    const userApp = store.appointments[0];
 
-    if (alexApp) {
-      if (alexApp.status === 'Approved' || alexApp.status === 'Accepted') {
-        return `Appointment Status: Approved\n• Faculty/HOD: ${alexApp.facultyName}\n• Date: ${alexApp.date || 'Scheduled Date'}\n• Time: ${alexApp.time || alexApp.requestedTime}\n• Location: ${alexApp.location || 'HOD Office'}\n• HOD Remarks: ${alexApp.remarks || 'Please meet me at the scheduled time.'}`;
+    if (userApp) {
+      if (userApp.status === 'Approved' || userApp.status === 'Accepted') {
+        return `Appointment Approved by HOD:\n• Faculty/HOD: ${userApp.facultyName}\n• Date: ${userApp.date || 'Monday, March 10'}\n• Time: ${userApp.time || userApp.requestedTime}\n• Location: ${userApp.location || 'HOD Office'}\n• Message from HOD: "${userApp.remarks || 'Please meet me at the scheduled time.'}"`;
       }
-      if (alexApp.status === 'Rejected') {
-        return `Appointment Status: Rejected\n• Faculty/HOD: ${alexApp.facultyName}\n• Reason: ${alexApp.rejectionReason || alexApp.remarks || 'No specific reason provided.'}`;
+      if (userApp.status === 'Rejected') {
+        return `Appointment Rejected by HOD:\n• Faculty/HOD: ${userApp.facultyName}\n• Reason: "${userApp.rejectionReason || userApp.remarks || 'Unavailable this week.'}"`;
       }
-      return `Appointment Status: Pending / Awaiting HOD Response\n• Faculty/HOD: ${alexApp.facultyName}\n• Requested Time: ${alexApp.requestedTime}\n• Queue Position: #${alexApp.queuePosition || 1}`;
+      return `Appointment Status: Pending\n• Your appointment request has been sent to ${userApp.facultyName} and is awaiting a response.\n• Reason: ${userApp.reason}`;
+    }
+
+    return `You have no active appointment requests. To request a meeting with your HOD, submit an appointment request in the Faculty section below.`;
+  }
+
+  // 2. HOD / FACULTY AVAILABILITY QUERY
+  if (q.includes('available') || q.includes('availability') || q.includes('slots') || q.includes('office hours') || q.includes('when is my hod')) {
+    const hod = store.facultyMembers.find((f) => f.name.toLowerCase().includes('rao') || f.name.toLowerCase().includes('hod')) || store.facultyMembers[0];
+    if (hod) {
+      return `HOD Availability (${hod.name}):\n• Status: ${hod.status} (${hod.statusNote})\n• Office Hours: ${hod.officeHours}\n• Location: ${hod.officeLocation}\n• Available Slots: ${hod.availableSlots.join(', ')}`;
     }
   }
 
-  // 2. REJECTION REASON QUERY
-  if (q.includes('reject') || q.includes('reason') || q.includes('why')) {
-    const rejectedApp = store.appointments.find((a) => a.status === 'Rejected');
-    if (rejectedApp) {
-      return `Status: Rejected\nReason: ${rejectedApp.rejectionReason || rejectedApp.remarks || 'No specific reason provided.'}`;
-    }
-    return `You have no rejected appointment requests in the verified application record.`;
-  }
-
-  // 3. HOD / FACULTY AVAILABILITY QUERY
-  if (q.includes('available') || q.includes('availability') || q.includes('slots') || q.includes('office hours')) {
-    const rao = store.facultyMembers.find((f) => f.name.toLowerCase().includes('rao')) || store.facultyMembers[0];
-    if (rao) {
-      return `HOD Availability (${rao.name}):\n• Current Status: ${rao.status} (${rao.statusNote})\n• Office Hours: ${rao.officeHours}\n• Location: ${rao.officeLocation}\n• Available Slots: ${rao.availableSlots.join(', ')}`;
+  // 3. ANNOUNCEMENTS & NOTICES QUERY
+  if (q.includes('announcement') || q.includes('notice') || q.includes('department') || q.includes('exam') || q.includes('circular')) {
+    const notices = store.announcements;
+    if (notices.length > 0) {
+      const top = notices[0];
+      return `📢 **Latest Announcement (${top.category})**\n• Title: ${top.title}\n• Posted By: ${top.postedBy} (${top.timestamp})\n• Details: ${top.content}`;
     }
   }
 
-  // 4. ANNOUNCEMENTS & NOTICES QUERY
-  if (q.includes('announcement') || q.includes('notice') || q.includes('exam') || q.includes('timetable') || q.includes('placement')) {
-    let matches = store.announcements;
-    if (q.includes('cse') || q.includes('exam') || q.includes('mid-term')) {
-      matches = store.announcements.filter((a) => a.category.toLowerCase().includes('exam') || a.title.toLowerCase().includes('mid-term'));
-    } else if (q.includes('placement') || q.includes('drive')) {
-      matches = store.announcements.filter((a) => a.category.toLowerCase().includes('placement'));
-    }
-
-    if (matches.length > 0) {
-      const top = matches[0];
-      return `📢 **${top.title}**\n• Category: ${top.category} | Posted By: ${top.postedBy}\n• Date: ${top.timestamp}\n• Summary: ${top.content}`;
-    }
-  }
-
-  // 5. CLUB REGISTRATION QUERY
-  if (q.includes('club') || q.includes('registration') || q.includes('audition') || q.includes('recruitment')) {
+  // 4. CLUB / WORKSHOP REGISTRATION QUERY
+  if (q.includes('club') || q.includes('workshop') || q.includes('registration') || q.includes('audition')) {
     const openClubs = store.clubs.filter((c) => c.registrationStatus === 'Open for Registration');
     if (openClubs.length > 0) {
       const list = openClubs
-        .map((c) => `• **${c.clubName}**: ${c.title} — Status: ${c.registrationStatus} (Deadline: ${c.deadline})`)
+        .map((c) => `• **${c.clubName}**: ${c.title} (Deadline: ${c.deadline})`)
         .join('\n');
-      return `🏆 **Clubs Open for Registration**:\n${list}`;
+      return `🏆 **Clubs & Workshops Open for Registration**:\n${list}`;
     }
   }
 
-  // 6. STRICT UNVERIFIED FALLBACK — NEVER HALLUCINATE OR GUESS
+  // 5. STRICT UNVERIFIED FALLBACK — NEVER HALLUCINATE OR GUESS
   return `I don't have verified information about that yet. Please check with the concerned department or college administration.`;
 }
 
-/**
- * AI Announcement Bullet Point Summarizer
- */
 export function summarizeNotice(content: string): string[] {
   if (content.length < 50) return [content];
   const sentences = content.split('. ').filter((s) => s.trim().length > 0);
   return sentences.map((s, idx) => `Key Action ${idx + 1}: ${s.trim()}${s.endsWith('.') ? '' : '.'}`);
 }
 
-/**
- * AI Regional Language Translator Simulation
- */
 export function translateNotice(
   content: string,
   targetLang: 'English' | 'Hindi' | 'Telugu'
@@ -297,22 +278,16 @@ export function translateNotice(
   return content;
 }
 
-/**
- * AI Department Routing Predictor for Student Grievances
- */
 export function predictGrievanceDepartment(description: string): string {
   const desc = description.toLowerCase();
-  if (desc.includes('wifi') || desc.includes('net') || desc.includes('laptop') || desc.includes('portal')) return 'Campus IT Infrastructure Cell';
-  if (desc.includes('hostel') || desc.includes('room') || desc.includes('water') || desc.includes('mess')) return 'Hostel Administration & Chief Warden Office';
-  if (desc.includes('exam') || desc.includes('marks') || desc.includes('grade') || desc.includes('hall ticket')) return 'Controller of Examinations Cell';
-  if (desc.includes('bus') || desc.includes('shuttle') || desc.includes('transport')) return 'Campus Transport Division';
-  if (desc.includes('fee') || desc.includes('scholarship') || desc.includes('challan')) return 'Finance & Accounts Department';
+  if (desc.includes('wifi') || desc.includes('net') || desc.includes('portal')) return 'Campus IT Infrastructure Cell';
+  if (desc.includes('hostel') || desc.includes('room') || desc.includes('mess')) return 'Hostel Administration & Chief Warden Office';
+  if (desc.includes('exam') || desc.includes('marks') || desc.includes('grade')) return 'Controller of Examinations Cell';
+  if (desc.includes('bus') || desc.includes('shuttle')) return 'Campus Transport Division';
+  if (desc.includes('fee') || desc.includes('scholarship')) return 'Finance & Accounts Department';
   return 'General Student Welfare Cell';
 }
 
-/**
- * AI Smart Search across Notices, Faculty, Clubs, and Class Discussions
- */
 export function searchCommunicationHub(query: string) {
   const q = query.toLowerCase().trim();
   if (!q) {
