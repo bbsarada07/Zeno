@@ -71,14 +71,14 @@ export interface SearchResolution {
 }
 
 /**
- * Get all 16 standardized campus locations
+ * Get all standardized campus locations
  */
 export function getCampusLocations(): CampusLocation[] {
   return campusData.locations as CampusLocation[];
 }
 
 /**
- * Find campus location by ID or Code or Name
+ * Find campus location by ID, Code, or Name
  */
 export function findCampusLocation(idOrCode: string): CampusLocation | undefined {
   const query = idOrCode.toLowerCase().trim();
@@ -92,7 +92,7 @@ export function findCampusLocation(idOrCode: string): CampusLocation | undefined
 }
 
 /**
- * Natural language resolver for buildings, room numbers, faculty names, and facilities
+ * Instant natural language resolver for buildings, room numbers, faculty names, and facilities
  */
 export function resolveSearchQuery(queryText: string): SearchResolution | null {
   const q = queryText.toLowerCase().trim();
@@ -100,26 +100,26 @@ export function resolveSearchQuery(queryText: string): SearchResolution | null {
 
   const locations = getCampusLocations();
 
-  // 1. Check Faculty Cabin Matches (e.g. "Prof. Ahmed", "Dr. V. Rao", "Ahmed", "Rao")
+  // 1. Faculty Cabins (e.g. "Professor Ahmed", "Dr. V. Rao", "Ahmed", "Rao")
   for (const loc of locations) {
     for (const room of loc.rooms) {
       if (room.faculty) {
         const facLower = room.faculty.toLowerCase();
-        if (facLower.includes(q) || q.includes('ahmed') && facLower.includes('ahmed') || q.includes('rao') && facLower.includes('rao')) {
+        if (facLower.includes(q) || (q.includes('ahmed') && facLower.includes('ahmed')) || (q.includes('rao') && facLower.includes('rao'))) {
           return {
             location: loc,
             nodeId: `n_${loc.code.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
             floor: room.floor,
             room: room,
             facultyName: room.faculty,
-            matchedText: `Faculty Cabin: ${room.faculty} (${loc.name}, Floor ${room.floor}, ${room.name})`,
+            matchedText: `Faculty Cabin: ${room.faculty} (${loc.name}, Floor ${room.floor}, Room ${room.roomNumber})`,
           };
         }
       }
     }
   }
 
-  // 2. Check Specific Room Numbers (e.g. "CSM-204", "ECE-204", "204", "LIB-101")
+  // 2. Specific Room Numbers (e.g. "CSM-204", "ECE-204", "204", "LIB-101")
   for (const loc of locations) {
     for (const room of loc.rooms) {
       const roomNumLower = room.roomNumber.toLowerCase();
@@ -136,7 +136,7 @@ export function resolveSearchQuery(queryText: string): SearchResolution | null {
     }
   }
 
-  // 3. Check Location Name / Code (e.g. "CSM", "CSE", "ECE", "Admin", "Canteen", "Basketball Ground")
+  // 3. Location Name / Code (e.g. "CSM", "CSE", "ECE", "Admin", "Canteen", "Basketball Ground", "Stadium")
   for (const loc of locations) {
     const codeLower = loc.code.toLowerCase();
     const nameLower = loc.name.toLowerCase();
@@ -167,12 +167,16 @@ export function resolveSearchQuery(queryText: string): SearchResolution | null {
     const loc = locations.find((l) => l.code === 'PARKING');
     if (loc) return { location: loc, nodeId: 'n_parking', floor: 1, matchedText: 'Parking Area' };
   }
+  if (q.includes('sports') || q.includes('gym')) {
+    const loc = locations.find((l) => l.code === 'SPORTS');
+    if (loc) return { location: loc, nodeId: 'n_sports', floor: 1, matchedText: 'Sports Complex' };
+  }
 
   return null;
 }
 
 /**
- * Execute Dijkstra Shortest Path Algorithm on Campus Graph
+ * Execute Client-Side Dijkstra Shortest Path Algorithm on Campus Navigation Graph
  */
 export function runDijkstra(
   sourceNodeId: string,
@@ -185,13 +189,14 @@ export function runDijkstra(
   const nodeMap = new Map<string, GraphNode>();
   nodes.forEach((n) => nodeMap.set(n.id, n));
 
-  // Fallback for node ID mapping if location code passed
+  // Resolve source node
   let srcNode = nodeMap.get(sourceNodeId);
   if (!srcNode) {
     const loc = findCampusLocation(sourceNodeId);
     if (loc) srcNode = nodes.find((n) => n.locationId === loc.id);
   }
 
+  // Resolve dest node
   let dstNode = nodeMap.get(destNodeId);
   if (!dstNode) {
     const loc = findCampusLocation(destNodeId);
@@ -200,13 +205,17 @@ export function runDijkstra(
 
   if (!srcNode || !dstNode) return null;
 
-  // Build Adjacency Graph
+  // Build Adjacency List & Edge Weights
   const adj = new Map<string, Array<{ target: string; weight: number }>>();
+  const edgeWeightMap = new Map<string, number>();
+
   nodes.forEach((n) => adj.set(n.id, []));
 
   edges.forEach((edge) => {
     adj.get(edge.source)?.push({ target: edge.target, weight: edge.weight });
     adj.get(edge.target)?.push({ target: edge.source, weight: edge.weight });
+    edgeWeightMap.set(`${edge.source}_${edge.target}`, edge.weight);
+    edgeWeightMap.set(`${edge.target}_${edge.source}`, edge.weight);
   });
 
   // Dijkstra Shortest Path Calculation
@@ -259,7 +268,6 @@ export function runDijkstra(
   }
 
   if (pathNodeIds[0] !== srcNode.id) {
-    // If unconnected path, fallback direct edge
     pathNodeIds.length = 0;
     pathNodeIds.push(srcNode.id, dstNode.id);
   }
@@ -269,12 +277,19 @@ export function runDijkstra(
     return n.coordinates;
   });
 
-  const totalDist = Math.round(distances.get(dstNode.id) || 120);
-  const estimatedTime = Math.max(1, Math.round(totalDist / 60)); // ~60m/min walking speed
+  // Sum actual edge weights along Dijkstra route
+  let totalDist = 0;
+  for (let i = 0; i < pathNodeIds.length - 1; i++) {
+    const key = `${pathNodeIds[i]}_${pathNodeIds[i + 1]}`;
+    totalDist += edgeWeightMap.get(key) || 40;
+  }
+
+  if (totalDist === 0 && srcNode.id !== dstNode.id) totalDist = 120;
+  const estimatedTime = Math.max(1, Math.ceil(totalDist / 70)); // ~70 meters per minute
 
   const destLocation = getCampusLocations().find((l) => l.id === dstNode?.locationId) || getCampusLocations()[0];
 
-  // Generate Turn-by-Turn Instructions
+  // Dynamic Turn-by-Turn Directions Generator
   const steps: DijkstraStep[] = [];
   steps.push({
     stepIndex: 1,
@@ -283,13 +298,38 @@ export function runDijkstra(
     icon: 'START',
   });
 
-  for (let i = 1; i < pathNodeIds.length - 1; i++) {
-    const node = nodeMap.get(pathNodeIds[i])!;
+  for (let i = 0; i < pathNodeIds.length - 1; i++) {
+    const currNode = nodeMap.get(pathNodeIds[i])!;
+    const nextNode = nodeMap.get(pathNodeIds[i + 1])!;
+    const segDist = edgeWeightMap.get(`${currNode.id}_${nextNode.id}`) || 40;
+
+    let dirText = 'Continue straight along main pathway';
+    let iconType: DijkstraStep['icon'] = 'WALK';
+
+    if (i > 0) {
+      const prevNode = nodeMap.get(pathNodeIds[i - 1])!;
+      const dx1 = currNode.coordinates[0] - prevNode.coordinates[0];
+      const dz1 = currNode.coordinates[2] - prevNode.coordinates[2];
+      const dx2 = nextNode.coordinates[0] - currNode.coordinates[0];
+      const dz2 = nextNode.coordinates[2] - currNode.coordinates[2];
+
+      const cross = dx1 * dz2 - dz1 * dx2;
+      if (cross > 50) {
+        dirText = `Turn right near ${currNode.name}`;
+        iconType = 'TURN_RIGHT';
+      } else if (cross < -50) {
+        dirText = `Turn left near ${currNode.name}`;
+        iconType = 'TURN_LEFT';
+      } else {
+        dirText = `Continue straight past ${currNode.name}`;
+      }
+    }
+
     steps.push({
-      stepIndex: i + 1,
-      instruction: `Walk along main campus pathway towards ${node.name}`,
-      distance: 35,
-      icon: 'WALK',
+      stepIndex: steps.length + 1,
+      instruction: `${dirText} for ${segDist} m toward ${nextNode.name}`,
+      distance: segDist,
+      icon: iconType,
     });
   }
 
@@ -338,7 +378,12 @@ export function findNearestLocation(
   const locations = getCampusLocations();
   const kw = categoryOrKeyword.toLowerCase();
 
-  const matching = locations.filter((loc) => loc.code.toLowerCase().includes(kw) || loc.name.toLowerCase().includes(kw) || loc.category.toLowerCase().includes(kw));
+  const matching = locations.filter(
+    (loc) =>
+      loc.code.toLowerCase().includes(kw) ||
+      loc.name.toLowerCase().includes(kw) ||
+      loc.category.toLowerCase().includes(kw)
+  );
   if (matching.length === 0) return null;
 
   const targetLoc = matching[0];
