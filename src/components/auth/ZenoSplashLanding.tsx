@@ -29,43 +29,49 @@ export const ZenoSplashLanding: React.FC<ZenoSplashLandingProps> = ({ onEnter })
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // 1. Primary Network Topology Nodes (Constellation Mesh)
+    // 1. Primary Network Topology Nodes (Static resting positions)
     const nodeCount = 65;
     const nodes: Array<{
+      originX: number;
+      originY: number;
       x: number;
       y: number;
-      vx: number;
-      vy: number;
       radius: number;
       alpha: number;
-      pulseSpeed: number;
-      pulsePhase: number;
-    }> = Array.from({ length: nodeCount }, () => ({
-      x: Math.random() * (canvas.width || 1200),
-      y: Math.random() * (canvas.height || 800),
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      radius: 1.5 + Math.random() * 2.2,
-      alpha: 0.25 + Math.random() * 0.45,
-      pulseSpeed: 0.015 + Math.random() * 0.02,
-      pulsePhase: Math.random() * Math.PI * 2,
-    }));
+    }> = Array.from({ length: nodeCount }, () => {
+      const rx = Math.random() * (canvas.width || 1200);
+      const ry = Math.random() * (canvas.height || 800);
+      return {
+        originX: rx,
+        originY: ry,
+        x: rx,
+        y: ry,
+        radius: 1.5 + Math.random() * 2.2,
+        alpha: 0.25 + Math.random() * 0.45,
+      };
+    });
 
-    // 2. Secondary Floating Dust / Particle Layer
+    // 2. Secondary Static Ambient Dust Layer
     const dustCount = 80;
     const dustParticles: Array<{
+      originX: number;
+      originY: number;
       x: number;
       y: number;
-      vy: number;
       radius: number;
       alpha: number;
-    }> = Array.from({ length: dustCount }, () => ({
-      x: Math.random() * (canvas.width || 1200),
-      y: Math.random() * (canvas.height || 800),
-      vy: -0.15 - Math.random() * 0.35,
-      radius: 0.6 + Math.random() * 1.2,
-      alpha: 0.1 + Math.random() * 0.3,
-    }));
+    }> = Array.from({ length: dustCount }, () => {
+      const rx = Math.random() * (canvas.width || 1200);
+      const ry = Math.random() * (canvas.height || 800);
+      return {
+        originX: rx,
+        originY: ry,
+        x: rx,
+        y: ry,
+        radius: 0.6 + Math.random() * 1.2,
+        alpha: 0.1 + Math.random() * 0.3,
+      };
+    });
 
     let globalTime = 0;
 
@@ -95,15 +101,27 @@ export const ZenoSplashLanding: React.FC<ZenoSplashLandingProps> = ({ onEnter })
         ctx.stroke();
       }
 
-      // 2. Render Secondary Ambient Dust Layer
+      // 2. Render Secondary Ambient Dust Layer (Static by default, gentle cursor shift)
       ctx.fillStyle = '#00F0FF';
       for (let d = 0; d < dustParticles.length; d++) {
         const dust = dustParticles[d];
-        dust.y += dust.vy;
-        if (dust.y < 0) {
-          dust.y = h;
-          dust.x = Math.random() * w;
+        const dxMouse = dust.originX - mx;
+        const dyMouse = dust.originY - my;
+        const distMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
+
+        let targetX = dust.originX;
+        let targetY = dust.originY;
+
+        if (distMouse < 140 && distMouse > 0) {
+          const force = (140 - distMouse) / 140;
+          targetX = dust.originX + (dxMouse / distMouse) * force * 20;
+          targetY = dust.originY + (dyMouse / distMouse) * force * 20;
         }
+
+        // Soft ease-out transition back to origin
+        dust.x += (targetX - dust.x) * 0.08;
+        dust.y += (targetY - dust.y) * 0.08;
+
         ctx.globalAlpha = dust.alpha * 0.5;
         ctx.beginPath();
         ctx.arc(dust.x, dust.y, dust.radius, 0, Math.PI * 2);
@@ -111,29 +129,30 @@ export const ZenoSplashLanding: React.FC<ZenoSplashLandingProps> = ({ onEnter })
       }
       ctx.globalAlpha = 1.0;
 
-      // 3. Update & Render Network Topology Mesh
+      // 3. Render Network Topology Mesh (Static by default, cursor-driven reaction)
       for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
-        node.x += node.vx;
-        node.y += node.vy;
-        node.pulsePhase += node.pulseSpeed;
 
-        if (node.x < 0 || node.x > w) node.vx *= -1;
-        if (node.y < 0 || node.y > h) node.vy *= -1;
-
-        // Magnetic Parallax & Repel Effect on Mouse Proximity
-        const dxMouse = node.x - mx;
-        const dyMouse = node.y - my;
+        // Magnetic displacement ONLY upon cursor proximity
+        const dxMouse = node.originX - mx;
+        const dyMouse = node.originY - my;
         const distMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
-        if (distMouse < 160) {
-          const force = (160 - distMouse) / 160;
-          node.x += (dxMouse / distMouse) * force * 1.8;
-          node.y += (dyMouse / distMouse) * force * 1.8;
+
+        let targetX = node.originX;
+        let targetY = node.originY;
+
+        if (distMouse < 180 && distMouse > 0) {
+          const force = (180 - distMouse) / 180;
+          targetX = node.originX + (dxMouse / distMouse) * force * 35;
+          targetY = node.originY + (dyMouse / distMouse) * force * 35;
         }
 
+        // Soft ease-out transition back to resting origin position
+        node.x += (targetX - node.x) * 0.08;
+        node.y += (targetY - node.y) * 0.08;
+
         // Draw Glowing Constellation Node
-        const currentAlpha = node.alpha + Math.sin(node.pulsePhase) * 0.2;
-        ctx.fillStyle = `rgba(0, 240, 255, ${Math.max(0.15, currentAlpha)})`;
+        ctx.fillStyle = `rgba(0, 240, 255, ${node.alpha})`;
         ctx.shadowColor = '#00F0FF';
         ctx.shadowBlur = 12;
         ctx.beginPath();
@@ -141,7 +160,7 @@ export const ZenoSplashLanding: React.FC<ZenoSplashLandingProps> = ({ onEnter })
         ctx.fill();
         ctx.shadowBlur = 0;
 
-        // Draw Faint Connecting Vector Lines + Traveling Data Packets
+        // Draw Faint Connecting Vector Lines + Traveling Light Data Packets
         for (let j = i + 1; j < nodes.length; j++) {
           const n2 = nodes[j];
           const dx = node.x - n2.x;
