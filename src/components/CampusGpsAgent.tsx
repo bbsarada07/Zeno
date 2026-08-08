@@ -24,6 +24,7 @@ import {
 import campusData from '../data/campusData.json';
 import { runDijkstra, resolveClassroomQuery } from '../services/dijkstraRouter';
 import type { DijkstraResult, ClassroomMatch, GraphNode } from '../services/dijkstraRouter';
+import { PhotorealisticCampus3D } from './PhotorealisticCampus3D';
 
 export const CampusGpsAgent: React.FC = () => {
   // Navigation State
@@ -276,84 +277,74 @@ export const CampusGpsAgent: React.FC = () => {
                   <Compass className="w-4 h-4" />
                 </button>
               </div>
-            </div>
-
-            {/* 3D MAP CANVAS SIMULATION */}
-            <div
-              className="w-full h-[480px] rounded-2xl bg-[#030712] border border-slate-800 relative overflow-hidden flex items-center justify-center select-none"
-              style={{ perspective: '1000px' }}
-            >
-              {/* Radial Grid Background */}
-              <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-40" />
-
-              {/* 3D Extruded Campus Buildings Layer */}
+                  {/* PHOTOREALISTIC 3D DIGITAL TWIN & 2D SCHEMATIC CANVAS */}
+            {is3DMode ? (
+              <PhotorealisticCampus3D
+                selectedLocationId={selectedBlockId}
+                onSelectBuilding={(id) => setSelectedBlockId(id)}
+                routeResult={routeResult}
+                is3DMode={is3DMode}
+                accessibilityMode={accessibilityMode}
+              />
+            ) : (
               <div
-                className="w-full h-full relative transition-transform duration-500 flex items-center justify-center"
-                style={{
-                  transform: `rotateX(${is3DMode ? pitchAngle : 0}deg) rotateZ(${is3DMode ? bearingAngle : 0}deg) scale(${zoomLevel})`,
-                  transformStyle: 'preserve-3d',
-                }}
+                className="w-full h-[480px] rounded-2xl bg-[#030712] border border-slate-800 relative overflow-hidden flex items-center justify-center select-none"
               >
-                {/* SVG Walkways & Calculated Dijkstra Route Path */}
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 600 400">
-                  <path
-                    d="M 80 300 L 220 280 L 320 200 L 450 120 M 220 280 L 150 180 M 320 200 L 400 300"
-                    stroke="#334155"
-                    strokeWidth="3"
-                    strokeDasharray="6 6"
-                    fill="none"
-                  />
-                  {routeResult && (
+                {/* 2D Flat Schematic Map */}
+                <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-40" />
+                <div className="w-full h-full relative flex items-center justify-center">
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 600 400">
                     <path
-                      d="M 220 280 L 320 200 L 150 180"
-                      stroke="#00F0FF"
-                      strokeWidth="6"
+                      d="M 80 300 L 220 280 L 320 200 L 450 120 M 220 280 L 150 180 M 320 200 L 400 300"
+                      stroke="#334155"
+                      strokeWidth="3"
+                      strokeDasharray="6 6"
                       fill="none"
-                      className="animate-pulse"
-                      filter="drop-shadow(0 0 10px rgba(0,240,255,0.8))"
                     />
-                  )}
-                </svg>
-
-                {/* Extruded 3D Campus Blocks */}
-                {campusData.blocks.map((bldg) => {
-                  const isTarget = selectedClassroom?.block === bldg.name;
-                  const isSelected = selectedBlockId === bldg.id;
-
-                  return (
-                    <div
-                      key={bldg.id}
-                      onClick={() => setSelectedBlockId(bldg.id)}
-                      className={`absolute transition-all cursor-pointer group flex flex-col items-center justify-center p-3 rounded-2xl border backdrop-blur-md shadow-2xl ${
-                        isTarget
-                          ? 'border-emerald-400 bg-emerald-500/20 text-white shadow-[0_0_30px_rgba(16,185,129,0.5)] scale-105'
-                          : isSelected
-                          ? 'border-cyan-400 bg-cyan-500/20 text-white shadow-[0_0_20px_rgba(0,240,255,0.4)]'
-                          : 'border-slate-800 bg-slate-950/80 text-slate-300 hover:border-cyan-500/50'
-                      }`}
-                      style={{
-                        width: '105px',
-                        height: '75px',
-                        top: bldg.id.includes('ece') ? '40%' : bldg.id.includes('admin') ? '25%' : bldg.id.includes('canteen') ? '65%' : bldg.id.includes('csm') ? '20%' : '15%',
-                        left: bldg.id.includes('ece') ? '25%' : bldg.id.includes('admin') ? '45%' : bldg.id.includes('canteen') ? '55%' : bldg.id.includes('csm') ? '70%' : '15%',
-                        transform: `translateZ(${is3DMode ? bldg.heightMeters * 1.2 : 0}px)`,
-                      }}
-                    >
-                      <Building className="w-4 h-4 mb-1" style={{ color: bldg.color }} />
-                      <div className="text-[10px] font-mono font-extrabold text-white text-center leading-tight">
-                        {bldg.name}
+                    {routeResult && (
+                      <path
+                        d="M 220 280 L 320 200 L 150 180"
+                        stroke="#00F0FF"
+                        strokeWidth="6"
+                        fill="none"
+                        className="animate-pulse"
+                        filter="drop-shadow(0 0 10px rgba(0,240,255,0.8))"
+                      />
+                    )}
+                  </svg>
+                  {campusData.blocks.map((bldg) => {
+                    const isTarget = selectedClassroom?.block === bldg.name;
+                    const isSelected = selectedBlockId === bldg.id;
+                    return (
+                      <div
+                        key={bldg.id}
+                        onClick={() => setSelectedBlockId(bldg.id)}
+                        className={`absolute transition-all cursor-pointer flex flex-col items-center justify-center p-3 rounded-2xl border backdrop-blur-md shadow-2xl ${
+                          isTarget
+                            ? 'border-emerald-400 bg-emerald-500/20 text-white shadow-[0_0_30px_rgba(16,185,129,0.5)] scale-105'
+                            : isSelected
+                            ? 'border-cyan-400 bg-cyan-500/20 text-white shadow-[0_0_20px_rgba(0,240,255,0.4)]'
+                            : 'border-slate-800 bg-slate-950/80 text-slate-300 hover:border-cyan-500/50'
+                        }`}
+                        style={{
+                          width: '105px',
+                          height: '75px',
+                          top: bldg.id.includes('ece') ? '40%' : bldg.id.includes('admin') ? '25%' : bldg.id.includes('canteen') ? '65%' : bldg.id.includes('csm') ? '20%' : '15%',
+                          left: bldg.id.includes('ece') ? '25%' : bldg.id.includes('admin') ? '45%' : bldg.id.includes('canteen') ? '55%' : bldg.id.includes('csm') ? '70%' : '15%',
+                        }}
+                      >
+                        <Building className="w-4 h-4 mb-1" style={{ color: bldg.color }} />
+                        <div className="text-[10px] font-mono font-extrabold text-white text-center leading-tight">
+                          {bldg.name}
+                        </div>
+                        <div className="text-[8px] font-mono text-slate-400">{bldg.floorsCount} Floors</div>
                       </div>
-                      <div className="text-[8px] font-mono text-slate-400">{bldg.floorsCount} Floors</div>
-
-                      {isTarget && (
-                        <span className="mt-1 px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-500 text-slate-950 animate-bounce">
-                          TARGET
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
+            )}
+          </div>
 
               {/* Recenter & Map Controls Overlay */}
               <div className="absolute bottom-4 left-4 bg-slate-950/90 border border-slate-800 rounded-2xl p-2 font-mono text-xs flex items-center space-x-2 z-20">
